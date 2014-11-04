@@ -1,0 +1,30 @@
+# Blender MTL File: 'impreza.blend'
+# Material Count: 3
+
+newmtl Material_#597
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.047059 0.047059 0.047059
+Ks 0.449020 0.449020 0.449020
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Material_#598
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl karoseria
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.100392 0.357647
+Ks 0.000000 0.247059 0.476471
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\JiriSimecek\\Dropbox\\jme projects\\CourseWork\\assets\\Textures\\impreza\\MAPA3ds.png

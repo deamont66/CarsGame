@@ -1,0 +1,40 @@
+# Blender MTL File: 'impreza.blend'
+# Material Count: 4
+
+newmtl Material_#624
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.031373 0.031373 0.031373
+Ks 0.449020 0.449020 0.449020
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Material_#655
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.549020 0.549020 0.549020
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Material_#940
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.272941 0.000000 0.000000
+Ks 0.449020 0.449020 0.449020
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\JiriSimecek\\Dropbox\\jme projects\\CourseWork\\assets\\Textures\\impreza\\Lampa_ty.png
+
+newmtl Material_#942
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.163137 0.163137 0.163137
+Ks 0.449020 0.449020 0.449020
+Ni 1.000000
+d 0.700000
+illum 2
+map_Kd C:\Users\JiriSimecek\Dropbox\jme projects\CourseWork\assets\Textures\impreza\Lampa_ty.png

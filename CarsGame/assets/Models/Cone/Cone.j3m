@@ -1,0 +1,28 @@
+Material MyMaterial : Common/MatDefs/Light/Lighting.j3md {
+    MaterialParameters {
+        DiffuseMap : Flip Repeat Textures/Cone/Cone_Diffuse.png
+        Specular : 1.0 1.0 1.0 1.0
+        Diffuse : 1.0 1.0 1.0 1.0
+        UseMaterialColors : false
+        ParallaxHeight : 0.0
+        Ambient : 1.0 1.0 1.0 1.0
+        Shininess : 0.0
+        UseVertexColor : false
+        VTangent : false
+        UseAlpha : false
+        VertexLighting : false
+        SeparateTexCoord : false
+        LowQuality : false
+    }
+    AdditionalRenderState {
+      FaceCull Back
+      Wireframe Off
+      DepthWrite On
+      PolyOffset 0.0 0.0
+      AlphaTestFalloff 0.0
+      Blend Alpha
+      PointSprite Off
+      ColorWrite On
+      DepthTest On
+    }
+}

@@ -1,0 +1,9 @@
+Material brick material : Common/MatDefs/Light/Lighting.j3md {
+     MaterialParameters {
+        DiffuseMap : Repeat Textures/bricks2.jpg
+        ParallaxMap : Repeat Textures/bricks2_disp.jpg
+        NormalMap : Repeat Textures/bricks2_normal.jpg
+     }
+    AdditionalRenderState {
+    }
+}

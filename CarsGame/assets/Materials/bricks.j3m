@@ -1,0 +1,27 @@
+Material old brick material : Common/MatDefs/Light/Lighting.j3md {
+     MaterialParameters {
+        DiffuseMap : Repeat Textures/bricks.jpg
+        ParallaxMap : Repeat Textures/bricks_disp.png
+        NormalMap : Repeat Textures/bricks_normal.jpg
+        VTangent : false
+        Shininess : 8.0
+        UseMaterialColors : false
+        UseVertexColor : false
+        Specular : 1.0 1.0 1.0 1.0
+        Diffuse : 1.0 1.0 1.0 1.0
+        Ambient : 0.6 0.6 0.6 1.0
+        HighQuality : false
+        LATC : false
+        Minnaert : false
+        VertexLighting : false
+        SteepParallax : false
+        PackedNormalParallax : false
+        EnvMapAsSphereMap : false
+        SeparateTexCoord : false
+        LowQuality : false
+        HardwareShadows : false
+        WardIso : false
+     }
+    AdditionalRenderState {
+    }
+}

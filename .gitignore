@@ -1,4 +1,10 @@
 target/
+build/
+nbproject/
+resources/
+dist/
+*.dll
+*.jnlp
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
