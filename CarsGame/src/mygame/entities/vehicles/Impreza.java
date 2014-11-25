@@ -25,7 +25,7 @@ public class Impreza extends AbstractVehicle {
 
     @Override
     protected void initVehicle() {
-        setModel((Node) getAssetManager().loadModel("Models/Vehicles/Impreza/impreza.j3o"), "chassis", "wheel_LF", "wheel_LR", "wheel_RF", "wheel_RR");
+        setModel((Node) getAssetManager().loadModel("Models/Vehicles/Impreza/impreza.j3o"), "Car", "wheel_LF", "wheel_LR", "wheel_RF", "wheel_RR");
         setWheelOffset(new Vector3f(0.95f, 0.8f, 1.60f));
         setWheelRadius(.4f);
         setCompValue(0.4f);

@@ -1,0 +1,48 @@
+3800_V6_3.8l_engine
+{
+	trigger_source	engine
+	pitch_source	engine_rpm
+	pitch_factors   0 1.0
+	gain_source	injector_ratio
+	gain_factors	0.6 0.6
+
+	sound	759.0	3800_V6_Front_idle.wav
+
+	sound	1052.0	3800_V6_Front_500rpm.wav
+
+	sound	1879.0	3800_V6_Front_1000rpm.wav
+
+	sound	2900.0	3800_V6_Front_4000rpm.wav
+
+}
+3800_V6_3.8l_exhaust
+{
+	trigger_source	engine
+	pitch_source	engine_rpm
+	pitch_factors   0 1.0
+	gain_source	injector_ratio
+	gain_factors	0.6 0.6
+
+	sound	850.0	3800_V6_Rear_idle.wav
+
+	sound	1079.0	3800_V6_Rear_500rpm.wav
+
+	sound	1820.0	3800_V6_Rear_1000rpm.wav
+
+	sound	2650.0	3800_V6_Rear_3000rpm.wav
+
+	sound	4018.0	3800_V6_Rear_4000rpm.wav
+
+	sound	4300.0	3800_V6_Rear_5000rpm.wav
+}
+3800_V6_3.8l_Starter
+{
+	trigger_source	starter
+        start_sound  unpitched  3800_V6_3.8l_start.wav
+        stop_sound  unpitched   3800_V6_3.8l_started.wav
+}
+3800_V6_3.8l_engine_stop
+{
+	trigger_source	engine
+	stop_sound	unpitched  3800_V6_3.8l_engine_stop.wav
+}

@@ -1,11 +1,12 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.bullet.BulletAppState;
+import com.jme3.app.StatsAppState;
 import com.jme3.collision.CollisionResults;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.*;
+import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
 import com.jme3.post.filters.DepthOfFieldFilter;
@@ -17,13 +18,18 @@ import com.jme3.shadow.CompareMode;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.system.AppSettings;
-import mygame.appstates.TestGameState;
-import mygame.entities.vehicles.Impreza;
+import de.lessvoid.nifty.Nifty;
+import mygame.appstates.MenuGameState;
+import mygame.guicontrollers.GameGuiController;
+import mygame.guicontrollers.MenuGuiController;
 
 public class Main extends SimpleApplication {
 
+    private final String version = "0.10";
     private DepthOfFieldFilter dofFilter;
-    private Impreza car;
+    private Nifty nifty;
+    private int fps, frameCounter = 0;
+    private float secondCounter = 0.0f;
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -40,20 +46,37 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        setDisplayFps(false);
         setDisplayStatView(false);
+        getFlyByCamera().setEnabled(false);
 
         flyCam.setMoveSpeed(25);
-        cam.setLocation(new Vector3f(2.3358383f, 4.598832f, -16.907782f));
-        cam.setRotation(new Quaternion(0.18012555f, -0.10304355f, 0.018978154f, 0.9780474f));
+//        cam.setLocation(new Vector3f(2.3358383f, 4.598832f, -16.907782f));
+//        cam.setRotation(new Quaternion(0.18012555f, -0.10304355f, 0.018978154f, 0.9780474f));
 
-        
-        
+
+
+        NiftyJmeDisplay niftyDisplay = new NiftyJmeDisplay(assetManager, inputManager, audioRenderer, guiViewPort);
+        /**
+         * Create a new NiftyGUI object
+         */
+        nifty = niftyDisplay.getNifty();
+        /**
+         * Read your XML and initialize your custom ScreenController
+         */
+        nifty.fromXml("Interface/mainMenu.xml", "start", new MenuGuiController(this), new GameGuiController(this));
+        // nifty.fromXml("Interface/helloworld.xml", "start", new MySettingsScreen(data));
+        // attach the Nifty display to the gui view port as a processor
+        guiViewPort.addProcessor(niftyDisplay);
+        // disable the fly cam
+        flyCam.setDragToRotate(true);
+
         initLightsAndFilters();
 
-        TestGameState game = new TestGameState();
+        MenuGameState game = new MenuGameState();
         stateManager.attach(game);
     }
-    
+
     private void initLightsAndFilters() {
         DirectionalLight dL = new DirectionalLight();
         dL.setDirection(new Vector3f(-0.44923937f, -0.415695f, -0.7908107f)); // -0.1400655f, -0.4112364f, 0.9007033f
@@ -62,7 +85,7 @@ public class Main extends SimpleApplication {
         AmbientLight aL = new AmbientLight();
         rootNode.addLight(aL);
 
-        DirectionalLightShadowRenderer shadowRender = new DirectionalLightShadowRenderer(getAssetManager(), 512, 3);
+        DirectionalLightShadowRenderer shadowRender = new DirectionalLightShadowRenderer(getAssetManager(), 1024, 3);
         shadowRender.setLight(dL);
         shadowRender.setEdgesThickness(3);
         shadowRender.setShadowCompareMode(CompareMode.Hardware);
@@ -92,7 +115,7 @@ public class Main extends SimpleApplication {
 
         FogFilter fog = new FogFilter(ColorRGBA.White, 0.5f, 10);
 //        fpp.addFilter(fog);
-        
+
         dofFilter = new DepthOfFieldFilter();
         fpp.addFilter(dofFilter);
 
@@ -108,7 +131,6 @@ public class Main extends SimpleApplication {
         viewPort.addProcessor(fpp);
     }
 
-
     @Override
     public void simpleUpdate(float tpf) {
         Ray r = new Ray(getCamera().getLocation(), getCamera().getDirection());
@@ -116,6 +138,14 @@ public class Main extends SimpleApplication {
         rootNode.collideWith(r, result);
         if (result.size() > 0) {
             dofFilter.setFocusDistance(result.getClosestCollision().getDistance() / 10);
+        }
+
+        secondCounter += getTimer().getTimePerFrame();
+        frameCounter++;
+        if (secondCounter >= 1.0f) {
+            fps = (int) (frameCounter / secondCounter);
+            secondCounter = 0.0f;
+            frameCounter = 0;
         }
     }
 
@@ -128,5 +158,17 @@ public class Main extends SimpleApplication {
     public void stop(boolean waitFor) {
         super.stop(waitFor);
         System.exit(0);
+    }
+
+    public Nifty getNifty() {
+        return nifty;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+    
+    public int getFps() {
+        return fps;
     }
 }
