@@ -28,8 +28,8 @@ public class Impreza extends AbstractVehicle {
         setModel((Node) getAssetManager().loadModel("Models/Vehicles/Impreza/impreza.j3o"), "Car", "wheel_LF", "wheel_LR", "wheel_RF", "wheel_RR");
         setWheelOffset(new Vector3f(0.95f, 0.8f, 1.60f));
         setWheelRadius(.4f);
-        setCompValue(0.4f);
-        setDampValue(0.8f);
+        setCompressionCoefficient(0.4f);
+        setDampingCoefficient(0.8f);
         setFrictionSlip(2f);
 
 //        frontLight = new SpotLight();

@@ -33,6 +33,7 @@ import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import com.jme3.util.TangentBinormalGenerator;
+import mygame.Settings;
 import mygame.entities.vehicles.AbstractVehicle;
 import mygame.entities.vehicles.Ferrari;
 import mygame.entities.vehicles.FollowCarControl;
@@ -48,6 +49,7 @@ public class TestGameState extends AbstractGameState {
     private AbstractVehicle car;
     private float steeringValue, accelerationValue, rearBrake;
     private SoundCarEmitterNode soundCarEmitterNode;
+    private FollowCarControl followCarControl;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -117,22 +119,24 @@ public class TestGameState extends AbstractGameState {
 
         // --- Camera ---
         // Disable the default flyby cam
-        app.getFlyByCamera().setEnabled(true);
+        app.getFlyByCamera().setEnabled(false);
         // Create Camera Control
-        FollowCarControl followCarControl = new FollowCarControl(app.getCamera());
+        followCarControl = new FollowCarControl(app.getCamera());
         // Offset cam a little, e.g. behind and above the target:
-        followCarControl.setCameraOffset(new Vector3f(0, -3, 13));
+        followCarControl.setBehindCameraOffset(new Vector3f(0, -3, 13));
+        followCarControl.setFrontCameraOffset(new Vector3f(0, -1f, -2f));
+        followCarControl.setInsideCameraOffset(new Vector3f(0, -1.5f, 0));
         // Add control to carNode
         car.getVehicleModelNode().addControl(followCarControl);
         car.getVehicleControl().setPhysicsLocation(new Vector3f(0, 60, 0));
 
-        loadTerrain(app.getAssetManager(), "Textures/Terrains/alps/heightMapSmooth.png", "Textures/Terrains/alps/diffuseMap.png", 1024, 1f);
+        loadTerrain(app.getAssetManager(), "Textures/Terrains/alps/heightMapSmooth.png", "Textures/Terrains/alps/diffuseMap.png", 1024, 0.8f);
 
         // tree
         Spatial tree = this.app.getAssetManager().loadModel("Models/Tree/Tree.mesh.j3o");
         tree.setShadowMode(RenderQueue.ShadowMode.Cast);
         tree.setLocalScale(2f);
-        tree.setLocalTranslation(-5, 25, 5);
+        tree.setLocalTranslation(-5, 27, 5);
         CompoundCollisionShape treeShape = new CompoundCollisionShape();
         treeShape.addChildShape(new BoxCollisionShape(new Vector3f(0.5f, 2.5f, 0.5f)), new Vector3f(0, 2.5f, 0));
         tree.addControl(new RigidBodyControl(treeShape, 0));
@@ -140,29 +144,12 @@ public class TestGameState extends AbstractGameState {
 
         rootNode.attachChild(tree);
 
-        // ground
-//        Box b1 = new Box(100, .25f, 100);
-//        b1.scaleTextureCoordinates(new Vector2f(100, 100));
-//        Geometry ground = new Geometry("ground", b1);
-//
-//        Material matG = this.app.getAssetManager().loadMaterial("Materials/bricks2.j3m");
-//        ground.setMaterial(matG);
-//        ground.setShadowMode(RenderQueue.ShadowMode.Receive);
-//        ground.setLocalTranslation(0, -5, 0);
-//        TangentBinormalGenerator.generate(ground);
-//        ground.addControl(new RigidBodyControl(0));
-////        physics.getPhysicsSpace().add(ground);
-//
-////        rootNode.attachChild(ground);
-
-        // box
         Box b = new Box(1, 1, 1);
         Geometry geom = new Geometry("Box", b);
-
         Material mat = this.app.getAssetManager().loadMaterial("Materials/bricks.j3m");
         geom.setShadowMode(RenderQueue.ShadowMode.Cast);
         geom.setMaterial(mat);
-        geom.move(0, 10, 0);
+        geom.move(0, 25, 0);
         geom.rotate(FastMath.DEG_TO_RAD * 45f, 0, FastMath.DEG_TO_RAD * 45f);
         TangentBinormalGenerator.generate(geom);
         RigidBodyControl boxBody = new RigidBodyControl(100);
@@ -173,11 +160,14 @@ public class TestGameState extends AbstractGameState {
     }
 
     private void initKeyEvents() {
-        app.getInputManager().addMapping("Accelerate", new KeyTrigger(KeyInput.KEY_U));
-        app.getInputManager().addMapping("Brake", new KeyTrigger(KeyInput.KEY_J));
-        app.getInputManager().addMapping("Left", new KeyTrigger(KeyInput.KEY_H));
-        app.getInputManager().addMapping("Right", new KeyTrigger(KeyInput.KEY_K));
-        app.getInputManager().addMapping("Handbrake", new KeyTrigger(KeyInput.KEY_SPACE));
+        Settings settings = Settings.getSettings();
+        app.getInputManager().addMapping("Accelerate", new KeyTrigger(settings.getKeyBinding("key_accelerate")));
+        app.getInputManager().addMapping("Brake", new KeyTrigger(settings.getKeyBinding("key_brake")));
+        app.getInputManager().addMapping("Left", new KeyTrigger(settings.getKeyBinding("key_left")));
+        app.getInputManager().addMapping("Right", new KeyTrigger(settings.getKeyBinding("key_right")));
+        app.getInputManager().addMapping("Handbrake", new KeyTrigger(settings.getKeyBinding("key_handbrake")));
+        app.getInputManager().addMapping("Camera", new KeyTrigger(settings.getKeyBinding("key_camera")));
+
         app.getInputManager().addMapping("Reset", new KeyTrigger(KeyInput.KEY_R));
         app.getInputManager().addMapping("Exit", new KeyTrigger(KeyInput.KEY_ESCAPE));
 
@@ -216,14 +206,12 @@ public class TestGameState extends AbstractGameState {
                     app.getStateManager().detach(TestGameState.this);
                     app.getStateManager().attach(new TestGameState());
                 } else if (name.equals("Handbrake")) {
-                    if (isPressed) {
-                        rearBrake = 1000;
-                    } else {
-                        rearBrake = 0;
-                    }
+                    rearBrake = isPressed ? 1000 : 0;
+                } else if (name.equals("Camera") && !isPressed) {
+                    followCarControl.setCameraMode(FollowCarControl.CameraMode.getNext(followCarControl.getCameraMode()));
                 }
             }
-        }, "Accelerate", "Brake", "Left", "Right", "Handbrake", "Reset", "Exit");
+        }, "Accelerate", "Brake", "Left", "Right", "Handbrake", "Camera", "Reset", "Exit");
     }
 
     private void loadTerrain(AssetManager assetManager, String heightMap, String diffuseTexture, int size, float heightScale) {
@@ -275,5 +263,9 @@ public class TestGameState extends AbstractGameState {
         CollisionShape terrainShape = CollisionShapeFactory.createMeshShape(terrain);
         terrain.addControl(new RigidBodyControl(terrainShape, 0));
         physics.getPhysicsSpace().add(terrain);
+    }
+
+    public float getCarSpeed() {
+        return car.getVehicleControl().getCurrentVehicleSpeedKmHour() * -1;
     }
 }

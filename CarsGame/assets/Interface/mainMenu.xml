@@ -1,18 +1,336 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <nifty xmlns="http://nifty-gui.sourceforge.net/nifty-1.3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://nifty-gui.sourceforge.net/nifty-1.3.xsd http://nifty-gui.sourceforge.net/nifty-1.3.xsd">
+    <useStyles filename="nifty-default-styles.xml" />
+    <useControls filename="nifty-default-controls.xml" />
     <screen id="start" controller="mygame.guicontrollers.MenuGuiController">
         <layer backgroundColor="#003f" childLayout="center">
-            <panel height="25%" width="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
-                <interact onClick="quit()"/>
-                <effect>
-                    <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
-                    <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
-                    <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
-                </effect>
-                <text font="aurulent-sans-16.fnt" color="#000f" text="Start!" align="center" valign="center" />
+            <panel height="50%" width="100%" align="center" valign="center" childLayout="absolute">
+                <panel height="24%" width="30%" y="0" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="play()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="PLAY" align="center" valign="center" />
+                </panel>
+                <panel height="24%" width="30%" y="25%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="goToScreen(settings)"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="SETTINGS" align="center" valign="center" />
+                </panel>
+                <panel height="24%" width="30%" y="50%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <!--                    <interact onClick="about()"/>-->
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="ABOUT" align="center" valign="center" />
+                </panel>
+                <panel height="24%" width="30%" y="75%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="stop()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="EXIT" align="center" valign="center" />
+                </panel>
             </panel>
         </layer>
     </screen>
+    
+    <screen id="settings" controller="mygame.guicontrollers.MenuGuiController">
+        <layer backgroundColor="#003f" childLayout="center">
+            <panel height="50%" width="100%" align="center" valign="center" childLayout="absolute">
+                <panel height="24%" width="30%" y="0" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="goToScreen(videoSettings)"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text id="" font="aurulent-sans-16.fnt" color="#000f" text="VIDEO" align="center" valign="center" />
+                </panel>
+                
+                <panel height="24%" width="30%" y="25%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="goToScreen(renderingSettings)"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text id="" font="aurulent-sans-16.fnt" color="#000f" text="RENDERING" align="center" valign="center" />
+                </panel>
+                <panel height="24%" width="30%" y="50%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="goToScreen(keybindingSettings)"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text id="" font="aurulent-sans-16.fnt" color="#000f" text="KEY BINDINGS" align="center" valign="center" />
+                </panel>
+                <!--                <panel height="24%" width="14.5%" y="75%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="saveAndApply()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="APPLY" align="center" valign="center" />
+                </panel>-->
+                <panel height="14%" width="14.5%" y="85%" x="50.5%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="goToScreen(start)"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="BACK TO MENU" align="center" valign="center" />
+                </panel>
+            </panel>
+        </layer>
+    </screen>
+    
+    <screen id="videoSettings" controller="mygame.guicontrollers.MenuGuiController">
+        <layer backgroundColor="#003f" childLayout="center">
+            <panel height="50%" width="100%" align="center" valign="center" childLayout="absolute">
+                <panel height="10%" width="30%" y="0" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <interact onClick="changeResolution()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Resolution:" align="left" valign="center" />
+                    <text id="resolution" x="50%" y="0%" width="50%" height="100%" font="aurulent-sans-16.fnt" color="#ffff" text="" align="center" valign="center" />
+                </panel>
+                <panel height="10%" width="30%" y="12%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <interact onClick="changeVSync()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="VSync:" align="left" valign="center" />
+                    <text id="vsync" x="50%" y="0%" width="50%" height="100%" font="aurulent-sans-16.fnt" color="#ffff" text="" align="center" valign="center" />
+                </panel>
+                <panel height="10%" width="30%" y="24%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <interact onClick="changeFullscreen()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Fullscreen:" align="left" valign="center" />
+                    <text id="fullscreen" x="50%" y="0%" width="50%" height="100%" font="aurulent-sans-16.fnt" color="#ffff" text="" align="center" valign="center" />
+                </panel>
+                <panel height="14%" width="14.5%" y="85%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="saveAndApply()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="APPLY" align="center" valign="center" />
+                </panel>
+                <panel height="14%" width="14.5%" y="85%" x="50.5%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="goToScreen(settings)"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="BACK TO MENU" align="center" valign="center" />
+                </panel>
+            </panel>
+        </layer>
+    </screen>
+    
+    <screen id="renderingSettings" controller="mygame.guicontrollers.MenuGuiController">
+        <layer backgroundColor="#003f" childLayout="center">
+            <panel height="50%" width="100%" align="center" valign="center" childLayout="absolute">
+                <panel height="10%" width="30%" y="0" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <interact onClick="changeSamples()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Multisampling:" align="left" valign="center" />
+                    <text id="samples" x="50%" y="0%" width="50%" height="100%" font="aurulent-sans-16.fnt" color="#ffff" text="" align="center" valign="center" />
+                </panel>
+                <panel height="10%" width="30%" y="12%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <!--<interact onClick="changeSamples()"/>-->
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Placeholder" align="left" valign="center" />
+                    <text id="" x="50%" y="0%" width="50%" height="100%" font="aurulent-sans-16.fnt" color="#ffff" text="" align="center" valign="center" />
+                </panel>
+                <panel height="10%" width="30%" y="24%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <!--<interact onClick="changeSamples()"/>-->
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Placeholder" align="left" valign="center" />
+                    <text id="" x="50%" y="0%" width="50%" height="100%" font="aurulent-sans-16.fnt" color="#ffff" text="" align="center" valign="center" />
+                </panel>
+                <panel height="10%" width="30%" y="36%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <!--<interact onClick="changeSamples()"/>-->
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Placeholder" align="left" valign="center" />
+                    <text id="" x="50%" y="0%" width="50%" height="100%" font="aurulent-sans-16.fnt" color="#ffff" text="" align="center" valign="center" />
+                </panel>
+                <panel height="10%" width="30%" y="48%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <!--<interact onClick="changeSamples()"/>-->
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Placeholder" align="left" valign="center" />
+                    <text id="" x="50%" y="0%" width="60%" height="100%" font="aurulent-sans-16.fnt" color="#ffff" text="" align="center" valign="center" />
+                </panel>
+                <panel height="10%" width="30%" y="36%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <!--<interact onClick="changeSamples()"/>-->
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Placeholder" align="left" valign="center" />
+                    <text id="" x="50%" y="0%" width="50%" height="100%" font="aurulent-sans-16.fnt" color="#ffff" text="" align="center" valign="center" />
+                </panel>
+                
+                <panel height="14%" width="14.5%" y="85%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="saveAndApply()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="APPLY" align="center" valign="center" />
+                </panel>
+                <panel height="14%" width="14.5%" y="85%" x="50.5%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="goToScreen(settings)"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="BACK TO MENU" align="center" valign="center" />
+                </panel>
+            </panel>
+        </layer>
+    </screen>
+    
+    <screen id="keybindingSettings" controller="mygame.guicontrollers.MenuGuiController">
+        <layer backgroundColor="#003f" childLayout="center">
+            <panel height="50%" width="100%" align="center" valign="center" childLayout="absolute">
+                <panel padding="5" height="10%" width="30%" y="0" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Accelerate: " align="left" valign="center" />
+                    <control x="60%" y="0%" width="40%" height="100%" id="key_accelerate" name="button" label="">
+                        <interact onClick="changeKeyBinding(key_accelerate)"/>
+                    </control>
+                </panel>
+                <panel padding="5" height="10%" width="30%" y="12%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Brake: " align="left" valign="center" />
+                    <control x="60%" y="0%" width="40%" height="100%" id="key_brake" name="button" label="">
+                        <interact onClick="changeKeyBinding(key_brake)"/>
+                    </control>
+                </panel>
+                <panel padding="5" height="10%" width="30%" y="24%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Turn left: " align="left" valign="center" />
+                    <control x="60%" y="0%" width="40%" height="100%" id="key_left" name="button" label="">
+                        <interact onClick="changeKeyBinding(key_left)"/>
+                    </control>
+                </panel>
+                <panel padding="5" height="10%" width="30%" y="36%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Turn right: " align="left" valign="center" />
+                    <control x="60%" y="0%" width="40%" height="100%" id="key_right" name="button" label="">
+                        <interact onClick="changeKeyBinding(key_right)"/>
+                    </control>
+                </panel>
+                <panel padding="5" height="10%" width="30%" y="48%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Handbrake: " align="left" valign="center" />
+                    <control x="60%" y="0%" width="40%" height="100%" id="key_handbrake" name="button" label="">
+                        <interact onClick="changeKeyBinding(key_handbrake)"/>
+                    </control>
+                </panel>
+                <panel padding="5" height="10%" width="30%" y="60%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="absolute" visibleToMouse="true">
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ff944dff" post="true"/>
+                    </effect>
+                    <text x="10%" y="0%" height="100%" font="aurulent-sans-16.fnt" color="#000f" text="Change camera: " align="left" valign="center" />
+                    <control x="60%" y="0%" width="40%" height="100%" id="key_camera" name="button" label="">
+                        <interact onClick="changeKeyBinding(key_camera)"/>
+                    </control>
+                </panel>
+                
+                <panel height="14%" width="14.5%" y="85%" x="35%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="saveAndApply()"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="APPLY" align="center" valign="center" />
+                </panel>
+                <panel height="14%" width="14.5%" y="85%" x="50.5%" align="center" valign="center" backgroundColor="#f60f" childLayout="center" visibleToMouse="true">
+                    <interact onClick="goToScreen(settings)"/>
+                    <effect>
+                        <onStartScreen name="move" mode="in" direction="top" length="300" startDelay="0" inherit="true"/>
+                        <onEndScreen name="move" mode="out" direction="bottom" length="300" startDelay="0" inherit="true"/>
+                        <onHover name="pulsate" scaleFactor="0.008" startColor="#f600" endColor="#ffff" post="true"/>
+                    </effect>
+                    <text font="aurulent-sans-16.fnt" color="#000f" text="BACK TO MENU" align="center" valign="center" />
+                </panel>
+            </panel>
+        </layer>
+    </screen>
+    
     <screen id="game" controller="mygame.guicontrollers.GameGuiController">
         <layer backgroundColor="#0000" childLayout="center">
             <panel height="38" width="80" align="left" valign="bottom" backgroundColor="#0000" childLayout="vertical" visibleToMouse="true">
@@ -23,6 +341,24 @@
                 </effect>
                 <text id="fpsText" font="aurulent-sans-16.fnt" color="#ffff" text="${CALL.getFps()} FPS" align="center" valign="center" />
                 <text font="aurulent-sans-16.fnt" color="#ffff" text="version ${CALL.getVersion()}" align="center" valign="center" />
+            </panel>
+            <panel id="panel_top_right2" align="right" valign="bottom" childLayout="horizontal">
+                <!--                <image filename="Interface/speedo.png" valign="center" align="center" height="150%" width="100%"/>-->
+                <text id="speed" font="Interface/Fonts/CollegiateInsideFLF.fnt" color="#ffff" text="0" align="center" valign="center" />
+                <text font="Interface/Fonts/CollegiateInsideFLF.fnt" color="#ffff" text="  km/h" align="center" valign="center" />
+            </panel>
+        </layer>
+    </screen>
+    
+    <screen id="loading" controller="mygame.guicontrollers.GameGuiController">
+        <layer backgroundColor="#0000" childLayout="absolute">
+            <panel height="5%" width="100%" align="left" valign="bottom" backgroundColor="#0000" childLayout="vertical" visibleToMouse="true">
+                <effect>
+                    <onStartScreen name="move" mode="in" direction="left" length="300" startDelay="0" inherit="true"/>
+                    <onEndScreen name="move" mode="out" direction="left" length="300" startDelay="0" inherit="true"/>
+                    <onHover name="pulsate" scaleFactor="0.008" startColor="#0005" endColor="#0008" post="true"/>
+                </effect>
+                <text x="50%" id="loading" font="aurulent-sans-16.fnt" color="#ffff" text="${CALL.getLoadingState()} FPS" align="center" valign="center" />
             </panel>
         </layer>
     </screen>

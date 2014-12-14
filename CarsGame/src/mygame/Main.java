@@ -1,7 +1,6 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.app.StatsAppState;
 import com.jme3.collision.CollisionResults;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
@@ -19,6 +18,7 @@ import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.system.AppSettings;
 import de.lessvoid.nifty.Nifty;
+import java.io.IOException;
 import mygame.appstates.MenuGameState;
 import mygame.guicontrollers.GameGuiController;
 import mygame.guicontrollers.MenuGuiController;
@@ -33,12 +33,8 @@ public class Main extends SimpleApplication {
 
     public static void main(String[] args) {
         Main app = new Main();
-
-        AppSettings settings = new AppSettings(true);
-        settings.setVSync(false);
-        settings.setTitle("CourseWork 0.01 Alpha");
-        settings.setResolution(1280, 720);
-
+        
+        AppSettings settings = Settings.getSettings().getAppSettings();
         app.setSettings(settings);
         app.setShowSettings(false);
         app.start();
@@ -133,12 +129,13 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleUpdate(float tpf) {
-        Ray r = new Ray(getCamera().getLocation(), getCamera().getDirection());
-        CollisionResults result = new CollisionResults();
-        rootNode.collideWith(r, result);
-        if (result.size() > 0) {
-            dofFilter.setFocusDistance(result.getClosestCollision().getDistance() / 10);
-        }
+//        Ray r = new Ray(getCamera().getLocation(), getCamera().getDirection());
+//        CollisionResults result = new CollisionResults();
+//        rootNode.collideWith(r, result);
+//        if (result.size() > 0) {
+//            dofFilter.setFocusDistance(result.getClosestCollision().getDistance() / 10);
+//        }
+        dofFilter.setFocusDistance(Vector3f.ZERO.distance(new Vector3f(0, -3, 13)) / 10);
 
         secondCounter += getTimer().getTimePerFrame();
         frameCounter++;
@@ -154,6 +151,17 @@ public class Main extends SimpleApplication {
         //TODO: add render code
     }
 
+    @Override
+    public void destroy() {
+        super.destroy();
+        try {
+            Settings.getSettings().save();
+        } catch (IOException ex) {
+        }
+    }
+
+    
+        
     @Override
     public void stop(boolean waitFor) {
         super.stop(waitFor);

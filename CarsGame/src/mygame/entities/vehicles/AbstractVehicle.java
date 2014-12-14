@@ -133,7 +133,11 @@ public abstract class AbstractVehicle {
         }
         this.wheelDirection = wheelDirection;
     }
-
+    
+    /**
+     * The coefficient of friction between the tyre and the ground. Should be about 0.8 for realistic cars, but can increased for better handling. Set large (10000.0) for kart racers
+     * @param frictionSlip 10000f default
+     */
     public void setFrictionSlip(float frictionSlip) {
         if(initialized) {
             for (int i = 0; i < control.getNumWheels(); i++) {
@@ -143,8 +147,6 @@ public abstract class AbstractVehicle {
         this.frictionSlip = frictionSlip;
     }
     
-    
-
     protected void setChassiCollisionShape(CollisionShape chassiCollisionShape) {
         if (initialized) {
             return;
@@ -152,7 +154,11 @@ public abstract class AbstractVehicle {
         this.chassiCollisionShape = chassiCollisionShape;
     }
 
-    public void setCompValue(float compValue) {
+    /**
+     * The damping coefficient for when the suspension is compressed.
+     * @param compValue 0.3f default
+     */
+    public void setCompressionCoefficient(float compValue) {
         if (initialized) {
             for (int i = 0; i < control.getNumWheels(); i++) {
                 control.setSuspensionCompression(i, compValue * 2.0f * FastMath.sqrt(stiffness));
@@ -161,7 +167,11 @@ public abstract class AbstractVehicle {
         this.compValue = compValue;
     }
 
-    public void setDampValue(float dampValue) {
+    /**
+     * The damping coefficient for when the suspension is expanding.
+     * @param dampValue 0.4f default
+     */
+    public void setDampingCoefficient(float dampValue) {
         if (initialized) {
             for (int i = 0; i < control.getNumWheels(); i++) {
                 control.setSuspensionDamping(i, dampValue * 2.0f * FastMath.sqrt(stiffness));
@@ -170,6 +180,10 @@ public abstract class AbstractVehicle {
         this.dampValue = dampValue;
     }
 
+    /**
+     * Sets suspension stiffness.
+     * @param stiffness 60.0f (default) -> 200 f1 car
+     */
     public void setStiffness(float stiffness) {
         if (initialized) {
             for (int i = 0; i < control.getNumWheels(); i++) {
@@ -181,13 +195,17 @@ public abstract class AbstractVehicle {
         this.stiffness = stiffness;
     }
 
+    /**
+     * Mass of the vehicle.
+     * @param mass 400f default
+     */
     public void setMass(float mass) {
         if (initialized) {
             control.setMass(mass);
         }
         this.mass = mass;
     }
-
+    
     protected float getMass() {
         return mass;
     }

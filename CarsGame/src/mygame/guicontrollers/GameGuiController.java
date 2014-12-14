@@ -7,6 +7,7 @@ package mygame.guicontrollers;
 import com.jme3.app.Application;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
+import mygame.appstates.TestGameState;
 
 /**
  *
@@ -22,16 +23,27 @@ public class GameGuiController extends AbstractGuiController {
         return app.getVersion();
     }
 
+    public String getLoadingState() {
+        return "Loading...";
+    }
+    
     public String getFps() {
         return Integer.toString(app.getFps());
     }
 
     @Override
     public void update(float tpf) {
-        if(!app.getNifty().getCurrentScreen().getScreenId().equals("game")) {
-            return;
+        if(app.getNifty().getCurrentScreen().getScreenId().equals("game")) {
+            Element text = app.getNifty().getCurrentScreen().findElementByName("fpsText");
+            text.getRenderer(TextRenderer.class).setText(getFps() + " FPS");
+            
+            Element speed = app.getNifty().getCurrentScreen().findElementByName("speed");
+            float carSpeed = app.getStateManager().getState(TestGameState.class).getCarSpeed();
+            speed.getRenderer(TextRenderer.class).setText((int) carSpeed + "");
         }
-        Element text = app.getNifty().getCurrentScreen().findElementByName("fpsText");
-        text.getRenderer(TextRenderer.class).setText(getFps() + " FPS");
+        if(app.getNifty().getCurrentScreen().getScreenId().equals("loading")) {
+            Element text = app.getNifty().getCurrentScreen().findElementByName("loading");
+            text.getRenderer(TextRenderer.class).setText(getLoadingState());
+        }
     }
 }
