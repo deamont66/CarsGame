@@ -6,6 +6,7 @@ package mygame.guicontrollers;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
+import com.jme3.input.event.KeyInputEvent;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
@@ -31,6 +32,9 @@ public class AbstractGuiController extends AbstractAppState implements ScreenCon
     }
 
     public void onEndScreen() {
+    }
+
+    public void keyBindCallBack(KeyInputEvent evt, String eventId) {
     }
     
 }

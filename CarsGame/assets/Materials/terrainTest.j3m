@@ -1,6 +1,0 @@
-Material My Material : Common/MatDefs/Terrain/TerrainLighting.j3md {
-     MaterialParameters {
-        DiffuseMap : Flip Textures/Terrains/diffuse.png
-        isTerrainGrid : false
-     }
-}

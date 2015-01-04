@@ -19,13 +19,34 @@ import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.light.AmbientLight;
+import com.jme3.light.DirectionalLight;
+import com.jme3.light.Light;
 import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Plane;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.BloomFilter;
+import com.jme3.post.filters.TranslucentBucketFilter;
+import com.jme3.post.filters.DepthOfFieldFilter;
+import com.jme3.post.filters.FXAAFilter;
+import com.jme3.post.filters.FogFilter;
+import com.jme3.post.filters.LightScatteringFilter;
+import com.jme3.post.filters.PosterizationFilter;
+import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Quad;
+import com.jme3.shadow.CompareMode;
+import com.jme3.shadow.DirectionalLightShadowFilter;
+import com.jme3.shadow.DirectionalLightShadowRenderer;
+import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.heightmap.AbstractHeightMap;
@@ -33,11 +54,16 @@ import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import com.jme3.util.TangentBinormalGenerator;
+import com.jme3.water.SimpleWaterProcessor;
+import com.jme3.water.WaterFilter;
+import de.lessvoid.nifty.elements.Element;
+import java.util.Iterator;
 import mygame.Settings;
 import mygame.entities.vehicles.AbstractVehicle;
 import mygame.entities.vehicles.Ferrari;
 import mygame.entities.vehicles.FollowCarControl;
 import mygame.entities.vehicles.SoundCarEmitterNode;
+import mygame.guicontrollers.GameGuiController;
 
 /**
  *
@@ -46,23 +72,19 @@ import mygame.entities.vehicles.SoundCarEmitterNode;
 public class TestGameState extends AbstractGameState {
 
     private BulletAppState physics;
+    private DepthOfFieldFilter dofFilter;
+    private WaterFilter water;
     private AbstractVehicle car;
-    private float steeringValue, accelerationValue, rearBrake;
+    private float steeringValue, accelerationValue, rearBrake, brake;
     private SoundCarEmitterNode soundCarEmitterNode;
     private FollowCarControl followCarControl;
+    private Geometry waterGeo;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
 
-        this.rootNode = this.app.getRootNode();
-//        this.carSound = new AudioNode(app.getAssetManager(), "Sounds/3800_3.8L_V6/3800_V6_Front_4000rpm.wav");
-//        start = new AudioNode(app.getAssetManager(), "Sounds/3800_3.8L_V6/3800_V6_3.8l_start.wav");
-//        start2 = new AudioNode(app.getAssetManager(), "Sounds/3800_3.8L_V6/3800_V6_3.8l_started.wav");
-//        start2.setTimeOffset(6f);
-//
-//        carSound.setLooping(true);
-//        carSound.play();
+        this.app.getNifty().fromXml("Interface/inGame.xml", "start", new GameGuiController(this.app));
 
         this.physics = new BulletAppState();
         this.physics.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
@@ -72,7 +94,7 @@ public class TestGameState extends AbstractGameState {
             public void prePhysicsTick(PhysicsSpace space, float tpf) {
                 car.getVehicleControl().accelerate(accelerationValue);
                 car.getVehicleControl().steer(steeringValue);
-                if (rearBrake > 0) {
+                if (rearBrake > 0 || brake > 0) {
                     car.getVehicleControl().accelerate(0);
                 }
                 car.getVehicleControl().brake(2, rearBrake);
@@ -87,14 +109,132 @@ public class TestGameState extends AbstractGameState {
 
         initKeyEvents();
     }
-    int gear = 1;
-    float pitchOffset = 0.5f;
-    float maxspeed = 180f;
-    float gearStep = 80;
+
+    @Override
+    public void initializeRenderersAndFPPs() {
+        this.app.getViewPort().clearProcessors();
+        for (Iterator<Light> it = this.app.getRootNode().getWorldLightList().iterator(); it.hasNext();) {
+            Light light = it.next();
+            this.app.getRootNode().removeLight(light);
+        }
+        if (waterGeo != null) {
+            rootNode.detachChild(waterGeo);
+        }
+
+        Settings settings = Settings.getSettings();
+        DirectionalLight dL = new DirectionalLight();
+        dL.setDirection(new Vector3f(-0.44923937f, -0.415695f, -0.7908107f)); // -0.1400655f, -0.4112364f, 0.9007033f
+        this.app.getRootNode().addLight(dL);
+
+        AmbientLight aL = new AmbientLight();
+        this.app.getRootNode().addLight(aL);
+
+        if (settings.getShadowType() == Settings.ShadowType.RENDERER || (settings.getShadowType() == Settings.ShadowType.FILTER && !settings.isPostProcessingEnabled())) {
+            DirectionalLightShadowRenderer shadowRender = new DirectionalLightShadowRenderer(this.app.getAssetManager(), settings.getShadowMapSize(), 3);
+            shadowRender.setLight(dL);
+            shadowRender.setShadowCompareMode(CompareMode.Hardware);
+            shadowRender.setEdgeFilteringMode(EdgeFilteringMode.Bilinear);
+            this.app.getViewPort().addProcessor(shadowRender);
+        }
+
+        if (!settings.isPostProcessingEnabled()) {
+            SimpleWaterProcessor waterProcessor = new SimpleWaterProcessor(this.app.getAssetManager());
+            waterProcessor.setReflectionScene(rootNode);
+            waterProcessor.setLightPosition(dL.getDirection());
+
+            Vector3f waterLocation = new Vector3f(0, -25, 0);
+            waterProcessor.setPlane(new Plane(Vector3f.UNIT_Y, waterLocation.dot(Vector3f.UNIT_Y)));
+            waterProcessor.setWaterColor(new ColorRGBA(0.0078f, 0.3176f, 0.5f, 1.0f));
+            waterProcessor.setWaterDepth(40);         // transparency of water
+            waterProcessor.setDistortionScale(0.05f); // strength of waves
+            waterProcessor.setWaveSpeed(0.05f);       // speed of waves
+
+            Quad quad = new Quad(3000, 3000);
+            quad.scaleTextureCoordinates(new Vector2f(45f, 45f));
+
+            waterGeo = new Geometry("water", quad);
+            waterGeo.setLocalTranslation(-400, -25, 250);
+            waterGeo.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
+            waterGeo.setMaterial(waterProcessor.getMaterial());
+
+            rootNode.attachChild(waterGeo);
+            this.app.getViewPort().addProcessor(waterProcessor);
+        }
+
+        if (settings.isPostProcessingEnabled()) {
+            FilterPostProcessor fpp = new FilterPostProcessor(this.app.getAssetManager());
+
+            water = new WaterFilter(rootNode, dL.getDirection());
+            water.setWaterHeight(-24f);
+            fpp.addFilter(water);
+
+            PosterizationFilter filter = new PosterizationFilter();
+            filter.setNumColors(8);
+            filter.setStrength(0.3f);
+            fpp.addFilter(filter);
+            
+            TranslucentBucketFilter translucent = new TranslucentBucketFilter();
+            fpp.addFilter(translucent);
+
+            if (settings.isFilterEnabled("FXAA")) {
+                FXAAFilter fxaaFilter = new FXAAFilter();
+                fpp.addFilter(fxaaFilter);
+            }
+
+// <editor-fold defaultstate="collapsed" desc="other filters (SSAP, BLOOM, LIGHT SCATERRING (direct), DEPTH of FIELD, and shadow filter)">
+            if (settings.isFilterEnabled("SSAO")) {
+                SSAOFilter ssaoFilter = new SSAOFilter();
+                fpp.addFilter(ssaoFilter);
+            }
+            if (settings.isFilterEnabled("BLOOM")) {
+                BloomFilter bloomFilter = new BloomFilter(BloomFilter.GlowMode.Objects);
+                fpp.addFilter(bloomFilter);
+            }
+
+            // START OF LIGHT SCATTERING
+            if (settings.isFilterEnabled("LSF")) {
+                LightScatteringFilter fsFilter = new LightScatteringFilter();
+                fsFilter.setLightPosition(dL.getDirection().mult(-3000));
+                fsFilter.setLightDensity(1.f);
+                fpp.addFilter(fsFilter);
+            }
+            // END OF LIGHT SCATTERING
+
+            if (settings.isFilterEnabled("FOG")) {
+                FogFilter fog = new FogFilter(ColorRGBA.White, 0.5f, 100);
+                fpp.addFilter(fog);
+            }
+            if (settings.isFilterEnabled("DOF")) {
+                dofFilter = new DepthOfFieldFilter();
+                fpp.addFilter(dofFilter);
+            }
+
+            if (settings.getShadowType() == Settings.ShadowType.FILTER) {
+                // Creates shadow filter, this technique doesnt work on intel integrated card :(, sadly. 
+                DirectionalLightShadowFilter shadowFilter = new DirectionalLightShadowFilter(this.app.getAssetManager(), settings.getShadowMapSize(), 3);
+                shadowFilter.setLight(dL);
+                shadowFilter.setShadowCompareMode(CompareMode.Hardware);
+                shadowFilter.setEdgeFilteringMode(EdgeFilteringMode.Bilinear);
+                fpp.addFilter(shadowFilter);
+            }
+// </editor-fold>
+
+
+            this.app.getViewPort().addProcessor(fpp);
+        }
+    }
+    float time = 0.0f;
 
     @Override
     public void update(float tpf) {
-        soundCarEmitterNode.setEngineRPM(Math.abs(car.getVehicleControl().getCurrentVehicleSpeedKmHour()) * 100);
+        if (dofFilter != null) {
+            dofFilter.setFocusDistance(Vector3f.ZERO.distance(new Vector3f(0, -3, 13)) / 10);
+        }
+        if (water != null) {
+            time += tpf;
+            float waterHeight = (float) Math.cos(((time * 0.6f) % FastMath.TWO_PI)) * 1f;
+            water.setWaterHeight(-25f + waterHeight);
+        }
 
         app.getListener().setLocation(app.getCamera().getLocation());
         app.getListener().setRotation(app.getCamera().getRotation());
@@ -128,7 +268,7 @@ public class TestGameState extends AbstractGameState {
         followCarControl.setInsideCameraOffset(new Vector3f(0, -1.5f, 0));
         // Add control to carNode
         car.getVehicleModelNode().addControl(followCarControl);
-        car.getVehicleControl().setPhysicsLocation(new Vector3f(0, 60, 0));
+        car.getVehicleControl().setPhysicsLocation(new Vector3f(4, 30, 4));
 
         loadTerrain(app.getAssetManager(), "Textures/Terrains/alps/heightMapSmooth.png", "Textures/Terrains/alps/diffuseMap.png", 1024, 0.8f);
 
@@ -149,17 +289,18 @@ public class TestGameState extends AbstractGameState {
         Material mat = this.app.getAssetManager().loadMaterial("Materials/bricks.j3m");
         geom.setShadowMode(RenderQueue.ShadowMode.Cast);
         geom.setMaterial(mat);
-        geom.move(0, 25, 0);
+        geom.move(0, 30, 0);
         geom.rotate(FastMath.DEG_TO_RAD * 45f, 0, FastMath.DEG_TO_RAD * 45f);
         TangentBinormalGenerator.generate(geom);
         RigidBodyControl boxBody = new RigidBodyControl(100);
         geom.addControl(boxBody);
         physics.getPhysicsSpace().add(geom);
-
         rootNode.attachChild(geom);
     }
 
-    private void initKeyEvents() {
+    public void initKeyEvents() {
+        app.getInputManager().clearMappings();
+
         Settings settings = Settings.getSettings();
         app.getInputManager().addMapping("Accelerate", new KeyTrigger(settings.getKeyBinding("key_accelerate")));
         app.getInputManager().addMapping("Brake", new KeyTrigger(settings.getKeyBinding("key_brake")));
@@ -177,7 +318,24 @@ public class TestGameState extends AbstractGameState {
 
             public void onAction(String name, boolean isPressed, float tpf) {
                 if (name.equals("Exit") && !isPressed) {
-                    app.stop();
+                    if (!TestGameState.this.isPaused()) {
+                        TestGameState.this.pause();
+                    } else {
+                        TestGameState.this.resume();
+                        Element element = app.getNifty().getCurrentScreen().findElementByName("videoSettings");
+                        element.setVisible(false);
+                        element = app.getNifty().getCurrentScreen().findElementByName("renderingSettings");
+                        element.setVisible(false);
+                        element = app.getNifty().getCurrentScreen().findElementByName("keybindingSettings");
+                        element.setVisible(false);
+                        element = app.getNifty().getCurrentScreen().findElementByName("backToMenu");
+                        element.setVisible(false);
+                        element = app.getNifty().getCurrentScreen().findElementByName("exitGame");
+                        element.setVisible(false);
+                    }
+                    Element element = app.getNifty().getCurrentScreen().findElementByName("ingameMenu");
+                    element.setVisible(TestGameState.this.isPaused());
+                    
                 } else if (name.equals("Left")) {
                     if (isPressed) {
                         steeringValue += .5f;
@@ -198,13 +356,13 @@ public class TestGameState extends AbstractGameState {
                     }
                 } else if (name.equals("Brake")) {
                     if (isPressed) {
-                        accelerationValue += brakeForce;
+                        accelerationValue += brakeForce * 2;
                     } else {
-                        accelerationValue -= brakeForce;
+                        accelerationValue -= brakeForce * 2;
                     }
                 } else if (name.equals("Reset") && !isPressed) {
-                    app.getStateManager().detach(TestGameState.this);
-                    app.getStateManager().attach(new TestGameState());
+                    initKeyEvents();
+                    initializeRenderersAndFPPs();
                 } else if (name.equals("Handbrake")) {
                     rearBrake = isPressed ? 1000 : 0;
                 } else if (name.equals("Camera") && !isPressed) {
@@ -248,7 +406,7 @@ public class TestGameState extends AbstractGameState {
          * it.
          */
         terrain.setMaterial(mat_terrain);
-        terrain.setShadowMode(RenderQueue.ShadowMode.Receive);
+        terrain.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         terrain.setLocalTranslation(0, -50, 0);
         terrain.setLocalScale(1f, 1f, 1f);
         rootNode.attachChild(terrain);

@@ -11,8 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -105,6 +103,38 @@ public class Settings {
         return s;
     }
 
+    public boolean isFilterEnabled(String filter) {
+        return Boolean.valueOf(settings.getProperty("filter_" + filter, "false"));
+    }
+
+    public void setFilterEnabled(String filter, boolean enabled) {
+        settings.setProperty("filter_" + filter, String.valueOf(enabled));
+    }
+
+    public boolean isPostProcessingEnabled() {
+        return Boolean.valueOf(settings.getProperty("PostProcessing", "false"));
+    }
+
+    public void setPostProcessingEnabled(boolean enabled) {
+        settings.setProperty("PostProcessing", String.valueOf(enabled));
+    }
+
+    public ShadowType getShadowType() {
+        return ShadowType.valueOf(settings.getProperty("shadows_type", "RENDERER"));
+    }
+    
+    public void setShadowType(ShadowType type) {
+        settings.setProperty("shadows_type", type.name());
+    }
+    
+    public int getShadowMapSize() {
+        return Integer.valueOf(settings.getProperty("shadows_res", "512"));
+    }
+    
+    public void setShadowMapSize(int size) {
+        settings.setProperty("shadows_res", String.valueOf(size));
+    }
+
     public static String getKeyName(int keyCode) {
         Class keyClass = KeyInput.class;
         for (Field field : keyClass.getFields()) {
@@ -117,5 +147,9 @@ public class Settings {
             }
         }
         return "";
+    }
+
+    public static enum ShadowType {
+        FILTER, RENDERER, NONE;
     }
 }
