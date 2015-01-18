@@ -11,8 +11,6 @@ import com.jme3.input.event.KeyInputEvent;
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.input.event.TouchEvent;
-import java.util.ArrayList;
-import java.util.List;
 import mygame.guicontrollers.AbstractGuiController;
 
 /**

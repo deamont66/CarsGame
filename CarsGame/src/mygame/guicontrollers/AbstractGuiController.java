@@ -24,6 +24,12 @@ public class AbstractGuiController extends AbstractAppState implements ScreenCon
         this.app = (Main) app;
         app.getStateManager().attach(this);
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        app.getStateManager().detach(this);
+    }
     
     public void bind(Nifty nifty, Screen screen) {
     }

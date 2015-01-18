@@ -6,9 +6,7 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
 import de.lessvoid.nifty.Nifty;
 import java.io.IOException;
-import mygame.appstates.MenuGameState;
-import mygame.guicontrollers.GameGuiController;
-import mygame.guicontrollers.MenuGuiController;
+import mygame.gamestates.MenuGameState;
 
 public class Main extends SimpleApplication {
 
@@ -38,19 +36,12 @@ public class Main extends SimpleApplication {
         
         guiViewPort.addProcessor(niftyDisplay);
 
-        MenuGameState mainState = new MenuGameState();
-        stateManager.attach(mainState);
+        MenuGameState state = new MenuGameState();
+        stateManager.attach(state);
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-//        Ray r = new Ray(getCamera().getLocation(), getCamera().getDirection());
-//        CollisionResults result = new CollisionResults();
-//        rootNode.collideWith(r, result);
-//        if (result.size() > 0) {
-//            dofFilter.setFocusDistance(result.getClosestCollision().getDistance() / 10);
-//        }
-
         secondCounter += getTimer().getTimePerFrame();
         frameCounter++;
         if (secondCounter >= 1.0f) {

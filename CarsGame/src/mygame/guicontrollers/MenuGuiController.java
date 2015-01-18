@@ -17,8 +17,8 @@ import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import mygame.KeyBindingInputListener;
 import mygame.Settings;
-import mygame.appstates.MenuGameState;
-import mygame.appstates.TestGameState;
+import mygame.gamestates.MenuGameState;
+import mygame.gamestates.TestGameState;
 
 /**
  *
