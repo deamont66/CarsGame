@@ -22,5 +22,6 @@ public class BasicVehicle extends AbstractVehicle {
         setModel((Node) getAssetManager().loadModel("Models/Vehicles/Car/car.j3o"), "Chassis", "wheel_LF", "wheel_LR", "wheel_RF", "wheel_RR");
         setWheelOffset(new Vector3f(0.7f, 1f, 1.28f));
         setWheelRadius(.3f);
+        setFrictionSlip(1f);
     }
 }

@@ -14,6 +14,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import mygame.Utils;
 
 /**
@@ -28,10 +29,11 @@ public abstract class AbstractVehicle {
     protected String chassiName, wheel_LF, wheel_LR, wheel_RF, wheel_RR;
     private boolean initialized = false;
     protected CollisionShape chassiCollisionShape;
-    protected Vector3f wheelOffset = new Vector3f(1f, 0.5f, 2f);
+    protected Vector3f wheelOffset = new Vector3f(1f, .5f, 2f);
     protected float suspensionRestLength = 0.3f;
+    protected Vector3f centerOfMassOffset = new Vector3f(0, 0.2f, 0);
     protected float wheelRadius = 0.5f;
-    protected float mass = 400f;
+    protected float mass = 1000f;
     //setting suspension values for wheels, this can be a bit tricky
     //see also https://docs.google.com/Doc?docid=0AXVUZ5xw6XpKZGNuZG56a3FfMzU0Z2NyZnF4Zmo&hl=en
     protected float stiffness = 60.0f;//200=f1 car
@@ -54,14 +56,15 @@ public abstract class AbstractVehicle {
 
     protected void initVehicleControl() {
         if (chassiCollisionShape == null) {
-            Geometry chassi = Utils.findGeom(model, chassiName);
-            chassi.setLocalTranslation(0, 1, 0);
+            Spatial chassi = Utils.findGeom(model, chassiName);
+            if(chassi == null) chassi = Utils.findNode(model, chassiName);
+            chassi.setLocalTranslation(centerOfMassOffset);
             chassiCollisionShape = CollisionShapeFactory.createDynamicMeshShape(chassi);
         }
         //create a compound shape and attach the BoxCollisionShape for the car body at 0,1,0
         //this shifts the effective center of mass of the BoxCollisionShape to 0,-1,0
         CompoundCollisionShape compoundShape = new CompoundCollisionShape();
-        compoundShape.addChildShape(chassiCollisionShape, new Vector3f(0, 1, 0));
+        compoundShape.addChildShape(chassiCollisionShape, centerOfMassOffset);
 
         //create vehicle node
         control = new VehicleControl(compoundShape, mass);
@@ -70,26 +73,31 @@ public abstract class AbstractVehicle {
         control.setSuspensionCompression(compValue * 2.0f * FastMath.sqrt(stiffness));
         control.setSuspensionDamping(dampValue * 2.0f * FastMath.sqrt(stiffness));
         control.setSuspensionStiffness(stiffness);
+        control.setFrictionSlip(frictionSlip);
         control.setMaxSuspensionForce(10000.0f);
 
         //Create four wheels and add them at their locations
 
-        Geometry wheels1 = Utils.findGeom(model, wheel_LF);
+        Spatial wheels1 = Utils.findGeom(model, wheel_LF);
+        if(wheels1 == null) wheels1 = Utils.findNode(model, wheel_LF);
         wheels1.center();
         control.addWheel(wheels1.getParent(), new Vector3f(-wheelOffset.x, wheelOffset.y, wheelOffset.z),
                 wheelDirection, wheelAxle, suspensionRestLength, wheelRadius, true);
 
-        Geometry wheels2 = Utils.findGeom(model, wheel_RF);
+        Spatial wheels2 = Utils.findGeom(model, wheel_RF);
+        if(wheels2 == null) wheels2 = Utils.findNode(model, wheel_RF);
         wheels2.center();
         control.addWheel(wheels2.getParent(), new Vector3f(wheelOffset.x, wheelOffset.y, wheelOffset.z),
                 wheelDirection, wheelAxle, suspensionRestLength, wheelRadius, true);
 
-        Geometry wheels3 = Utils.findGeom(model, wheel_LR);
+        Spatial wheels3 = Utils.findGeom(model, wheel_LR);
+        if(wheels3 == null) wheels3 = Utils.findNode(model, wheel_LR);
         wheels3.center();
         control.addWheel(wheels3.getParent(), new Vector3f(-wheelOffset.x, wheelOffset.y, -wheelOffset.z),
                 wheelDirection, wheelAxle, suspensionRestLength, wheelRadius, false);
 
-        Geometry wheels4 = Utils.findGeom(model, wheel_RR);
+        Spatial wheels4 = Utils.findGeom(model, wheel_RR);
+        if(wheels4 == null) wheels4 = Utils.findNode(model, wheel_RR);
         wheels4.center();
         control.addWheel(wheels4.getParent(), new Vector3f(wheelOffset.x, wheelOffset.y, -wheelOffset.z),
                 wheelDirection, wheelAxle, suspensionRestLength, wheelRadius, false);
@@ -120,6 +128,10 @@ public abstract class AbstractVehicle {
         this.wheelOffset = wheelOffset;
     }
 
+    public void setCenterOfMassOffset(Vector3f centerOfMassOffset) {
+        this.centerOfMassOffset = centerOfMassOffset;
+    }
+    
     protected void setWheelAxle(Vector3f wheelAxle) {
         if (initialized) {
             return;

@@ -43,8 +43,8 @@ import java.util.Iterator;
 
 import mygame.Settings;
 import mygame.entities.vehicles.AbstractVehicle;
-import mygame.entities.vehicles.Ferrari;
 import mygame.entities.vehicles.FollowCarControl;
+import mygame.entities.vehicles.GoKart;
 import mygame.entities.vehicles.SoundCarEmitterNode;
 import mygame.guicontrollers.GameGuiController;
 
@@ -75,10 +75,11 @@ public class TestGameState extends AbstractGameState {
         this.physics = new BulletAppState();
         this.physics.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(this.physics);
+//        this.physics.getPhysicsSpace().enableDebug(app.getAssetManager());
 
         this.physics.getPhysicsSpace().addTickListener(new PhysicsTickListener() {
             public void prePhysicsTick(PhysicsSpace space, float tpf) {
-                car.getVehicleControl().accelerate(accelerationValue);
+                car.getVehicleControl().accelerate(-accelerationValue);
                 car.getVehicleControl().steer(steeringValue);
                 if (rearBrake > 0 || brake > 0) {
                     car.getVehicleControl().accelerate(0);
@@ -238,7 +239,7 @@ public class TestGameState extends AbstractGameState {
         rootNode.attachChild(s);
         
         // car        
-        car = new Ferrari(this.app.getAssetManager());
+        car = new GoKart(this.app.getAssetManager());
         car.attachTo(rootNode, physics.getPhysicsSpace());
 
         // --- Sound ---
@@ -251,9 +252,9 @@ public class TestGameState extends AbstractGameState {
         // Create Camera Control
         followCarControl = new FollowCarControl(app.getCamera());
         // Offset cam a little, e.g. behind and above the target:
-        followCarControl.setBehindCameraOffset(new Vector3f(0, -3, 13));
-        followCarControl.setFrontCameraOffset(new Vector3f(0, -1f, -2f));
-        followCarControl.setInsideCameraOffset(new Vector3f(0, -1.5f, 0));
+        followCarControl.setBehindCameraOffset(new Vector3f(0, -5, 13));
+        followCarControl.setFrontCameraOffset(new Vector3f(0, -0.5f, -1.8f));
+        followCarControl.setInsideCameraOffset(new Vector3f(0, -2f, 1));
         // Add control to carNode
         car.getVehicleModelNode().addControl(followCarControl);
 //        car.getVehicleControl().setPhysicsLocation(new Vector3f(4, 40, 4));
@@ -439,6 +440,6 @@ public class TestGameState extends AbstractGameState {
     }
 
     public float getCarSpeed() {
-        return car.getVehicleControl().getCurrentVehicleSpeedKmHour() * -1;
+        return car.getVehicleControl().getCurrentVehicleSpeedKmHour();
     }
 }

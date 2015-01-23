@@ -1,0 +1,15 @@
+Material plasticRubber : Common/MatDefs/Light/Lighting.j3md {
+     MaterialParameters {
+        Diffuse : 0 0 0 1.0
+        LATC : false
+        UseAlpha : false
+        Minnaert : false
+        UseVertexColor : false
+        UseMaterialColors : true
+        Specular : 0.2 0.2 0.2 1.0
+        Ambient : 0.02 0.02 0.02 1.0
+        Shininess : 1.1
+     }
+    AdditionalRenderState {
+    }
+}

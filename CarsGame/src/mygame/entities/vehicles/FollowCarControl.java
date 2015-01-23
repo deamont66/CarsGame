@@ -11,6 +11,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.control.AbstractControl;
+import mygame.Utils;
 
 /**
  *
@@ -46,7 +47,8 @@ public class FollowCarControl extends AbstractControl {
                 } else if ((vehicle.getLinearVelocity().length() - 2) != 0) {
                     amount = tpf / (1 / (vehicle.getLinearVelocity().length() - 2));
                 }
-                cloneQuat.slerp(directionQuaternion, amount);
+                System.out.println(amount);
+                cloneQuat.slerp(directionQuaternion, Utils.clamp(amount, 0, 1));
                 // we rotate offset to our direction
                 Vector3f offset = cloneQuat.mult(camBehindOffset);
                 // set camera on the position of the car and apply computed offset
@@ -54,19 +56,23 @@ public class FollowCarControl extends AbstractControl {
                 // lookAt the same direction like a car is headed
                 cam.setRotation(cloneQuat);
             } else if(cameraMode == CameraMode.FRONT) {
-                Quaternion vehicleRotation = vehicle.getPhysicsRotation().multLocal(new Quaternion().fromAngles(0, (float) Math.PI, 0));
+                Quaternion vehicleRotation = vehicle.getPhysicsRotation();//.multLocal(new Quaternion().fromAngles(0, (float) Math.PI, 0));
                 // we rotate offset to our direction
                 Vector3f offset = vehicleRotation.mult(camFrontOffset);
+                Quaternion oldRot = cam.getRotation().clone();
+                oldRot.slerp(vehicleRotation, Utils.clamp(tpf * 50, 0, 1));
                 // set camera on the position of the car and apply computed offset
                 cam.setLocation(spatial.getLocalTranslation().subtract(offset));
-                cam.setRotation(vehicleRotation);
+                cam.setRotation(oldRot);
             } else if(cameraMode == CameraMode.INSIDE) {
-                Quaternion vehicleRotation = vehicle.getPhysicsRotation().multLocal(new Quaternion().fromAngles(0, (float) Math.PI, 0));
+                Quaternion vehicleRotation = vehicle.getPhysicsRotation();//.multLocal(new Quaternion().fromAngles(0, (float) Math.PI, 0));
                 // we rotate offset to our direction
                 Vector3f offset = vehicleRotation.mult(camInsideOffset);
+                Quaternion oldRot = cam.getRotation().clone();
+                oldRot.slerp(vehicleRotation, Utils.clamp(tpf * 50, 0, 1));                
                 // set camera on the position of the car and apply computed offset
                 cam.setLocation(spatial.getLocalTranslation().subtract(offset));
-                cam.setRotation(vehicleRotation);
+                cam.setRotation(oldRot);
             } 
         }
     }
