@@ -19,7 +19,7 @@ import mygame.Main;
  */
 public abstract class AbstractGameState extends AbstractAppState {
     
-    protected Main app;
+    public Main app;
     protected Node rootNode;
     private boolean paused = false;
     

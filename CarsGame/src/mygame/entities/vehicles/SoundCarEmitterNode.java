@@ -8,8 +8,6 @@ import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioNode;
 import com.jme3.bullet.control.VehicleControl;
 import com.jme3.scene.Node;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
@@ -17,43 +15,46 @@ import java.util.List;
  */
 public class SoundCarEmitterNode extends Node {
 
-    private final List<String> sounds = new ArrayList<String>();
-    private final SoundCarEmitterControl emitter;
+    private final String IDLE = "Sounds/vehicle/SportCarEngineIdleMono.wav";
     
-    public SoundCarEmitterNode(SoundCarEmitterControl emitter) {
-        addControl(emitter);
-        this.emitter = emitter;
-    }
+    private final String LOW  = "Sounds/vehicle/SportCarEngineLowMono.wav";
+    private final String MID  = "Sounds/vehicle/SportCarEngineMidMono.wav";
+    private final String FAST = "Sounds/vehicle/SportCarEngineFastMono.wav";
     
-    public SoundCarEmitterNode(AssetManager assetManager) {
+    private final String REV  = "Sounds/vehicle/SportCarEngineRevMono.wav";
+    private final String REV2 = "Sounds/vehicle/SportCarEngineRev2Mono.wav";
+    
+    private final AssetManager assetManager;
+    private final SoundCarEmitterControl control;
+    
+    public SoundCarEmitterNode(AssetManager assetManager, VehicleControl vehicle) {
         super("carEmitterNode");
-//        sounds.add("Sounds/v8_2/1052_P.wav");   // 0
-        sounds.add("Sounds/v8_2/1205.wav");   // 1300
-        sounds.add("Sounds/v8_2/1808.wav");   // 1900
-        sounds.add("Sounds/v8_2/2536.wav");   // 2500
-        sounds.add("Sounds/v8_2/3107.wav");   // 3100
-        sounds.add("Sounds/v8_2/3806.wav");   // 3700
-        sounds.add("Sounds/v8_2/4358.wav");   // 4300
-        sounds.add("Sounds/v8_2/4989.wav");   // 4900
-        sounds.add("Sounds/v8_2/5712.wav");   // 5500
-        sounds.add("Sounds/v8_2/6112.wav");   // 6100
-        sounds.add("Sounds/v8_2/6997.wav");   // 6700
-        sounds.add("Sounds/v8_2/7487.wav");   // 7300
         
-        List<AudioNode> audioNodes = new ArrayList<AudioNode>();
-        for (String audioFile : sounds) {
-            AudioNode audioNode = new AudioNode(assetManager, audioFile);
-            audioNode.setVolume(0f);
-            audioNode.setLooping(true);
-            this.attachChild(audioNode);
-            audioNodes.add(audioNode);            
-        }
-        this.emitter = new SoundCarEmitterControl(audioNodes);
-        addControl(emitter);
+        this.assetManager = assetManager;
+        
+        control = new SoundCarEmitterControl(vehicle);
+        control.setAudioNode(SoundCarEmitterControl.AudioType.IDLE, createAudio(IDLE));
+        control.setAudioNode(SoundCarEmitterControl.AudioType.LOW, createAudio(LOW));
+        control.setAudioNode(SoundCarEmitterControl.AudioType.MID, createAudio(MID));
+        control.setAudioNode(SoundCarEmitterControl.AudioType.FAST, createAudio(FAST));
+        control.setAudioNode(SoundCarEmitterControl.AudioType.REV, createAudio(REV));
+        control.setAudioNode(SoundCarEmitterControl.AudioType.REV2, createAudio(REV2));
+        
+        addControl(control);
     }
     
+    private AudioNode createAudio(String audioFile) {
+        AudioNode audio = new AudioNode(assetManager, audioFile);
+        audio.setLooping(true);
+        audio.setVolume(0);
+        audio.play();
+        audio.getAudioData();
+        attachChild(audio);
+        return audio;
+    }
     
-    public void setEngineRPM(float rpm) {
-        emitter.setEngineRPM(rpm);
+    public void cleanup() {
+        removeControl(control);
+        control.cleanup();
     }
 }

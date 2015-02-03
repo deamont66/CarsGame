@@ -42,6 +42,7 @@ public abstract class AbstractVehicle {
     protected float frictionSlip = 10000f;
     protected Vector3f wheelDirection = new Vector3f(0, -1, 0);
     protected Vector3f wheelAxle = new Vector3f(-1, 0, 0);
+    private SoundCarEmitterNode soundNode;
 
     public AbstractVehicle(AssetManager manager) {
         this.assetManager = manager;
@@ -57,7 +58,9 @@ public abstract class AbstractVehicle {
     protected void initVehicleControl() {
         if (chassiCollisionShape == null) {
             Spatial chassi = Utils.findGeom(model, chassiName);
-            if(chassi == null) chassi = Utils.findNode(model, chassiName);
+            if (chassi == null) {
+                chassi = Utils.findNode(model, chassiName);
+            }
             chassi.setLocalTranslation(centerOfMassOffset);
             chassiCollisionShape = CollisionShapeFactory.createDynamicMeshShape(chassi);
         }
@@ -79,31 +82,50 @@ public abstract class AbstractVehicle {
         //Create four wheels and add them at their locations
 
         Spatial wheels1 = Utils.findGeom(model, wheel_LF);
-        if(wheels1 == null) wheels1 = Utils.findNode(model, wheel_LF);
+        if (wheels1 == null) {
+            wheels1 = Utils.findNode(model, wheel_LF);
+        }
         wheels1.center();
         control.addWheel(wheels1.getParent(), new Vector3f(-wheelOffset.x, wheelOffset.y, wheelOffset.z),
                 wheelDirection, wheelAxle, suspensionRestLength, wheelRadius, true);
 
         Spatial wheels2 = Utils.findGeom(model, wheel_RF);
-        if(wheels2 == null) wheels2 = Utils.findNode(model, wheel_RF);
+        if (wheels2 == null) {
+            wheels2 = Utils.findNode(model, wheel_RF);
+        }
         wheels2.center();
         control.addWheel(wheels2.getParent(), new Vector3f(wheelOffset.x, wheelOffset.y, wheelOffset.z),
                 wheelDirection, wheelAxle, suspensionRestLength, wheelRadius, true);
 
         Spatial wheels3 = Utils.findGeom(model, wheel_LR);
-        if(wheels3 == null) wheels3 = Utils.findNode(model, wheel_LR);
+        if (wheels3 == null) {
+            wheels3 = Utils.findNode(model, wheel_LR);
+        }
         wheels3.center();
         control.addWheel(wheels3.getParent(), new Vector3f(-wheelOffset.x, wheelOffset.y, -wheelOffset.z),
                 wheelDirection, wheelAxle, suspensionRestLength, wheelRadius, false);
 
         Spatial wheels4 = Utils.findGeom(model, wheel_RR);
-        if(wheels4 == null) wheels4 = Utils.findNode(model, wheel_RR);
+        if (wheels4 == null) {
+            wheels4 = Utils.findNode(model, wheel_RR);
+        }
         wheels4.center();
         control.addWheel(wheels4.getParent(), new Vector3f(wheelOffset.x, wheelOffset.y, -wheelOffset.z),
                 wheelDirection, wheelAxle, suspensionRestLength, wheelRadius, false);
+
+
+        soundNode = new SoundCarEmitterNode(getAssetManager(), control);
+        model.attachChild(soundNode);
     }
 
     protected abstract void initVehicle();
+
+    public void cleanup() {
+        if (soundNode != null) {
+            model.detachChild(soundNode);
+            soundNode.cleanup();
+        }
+    }
 
     public void setModel(Node model, String chassi, String wheel_LF, String wheel_LR, String wheel_RF, String wheel_RR) {
         this.model = model;
@@ -131,7 +153,7 @@ public abstract class AbstractVehicle {
     public void setCenterOfMassOffset(Vector3f centerOfMassOffset) {
         this.centerOfMassOffset = centerOfMassOffset;
     }
-    
+
     protected void setWheelAxle(Vector3f wheelAxle) {
         if (initialized) {
             return;
@@ -145,20 +167,23 @@ public abstract class AbstractVehicle {
         }
         this.wheelDirection = wheelDirection;
     }
-    
+
     /**
-     * The coefficient of friction between the tyre and the ground. Should be about 0.8 for realistic cars, but can increased for better handling. Set large (10000.0) for kart racers
+     * The coefficient of friction between the tyre and the ground. Should be
+     * about 0.8 for realistic cars, but can increased for better handling. Set
+     * large (10000.0) for kart racers
+     *
      * @param frictionSlip 10000f default
      */
     public void setFrictionSlip(float frictionSlip) {
-        if(initialized) {
+        if (initialized) {
             for (int i = 0; i < control.getNumWheels(); i++) {
                 control.setFrictionSlip(i, frictionSlip);
             }
         }
         this.frictionSlip = frictionSlip;
     }
-    
+
     protected void setChassiCollisionShape(CollisionShape chassiCollisionShape) {
         if (initialized) {
             return;
@@ -168,6 +193,7 @@ public abstract class AbstractVehicle {
 
     /**
      * The damping coefficient for when the suspension is compressed.
+     *
      * @param compValue 0.3f default
      */
     public void setCompressionCoefficient(float compValue) {
@@ -181,6 +207,7 @@ public abstract class AbstractVehicle {
 
     /**
      * The damping coefficient for when the suspension is expanding.
+     *
      * @param dampValue 0.4f default
      */
     public void setDampingCoefficient(float dampValue) {
@@ -194,6 +221,7 @@ public abstract class AbstractVehicle {
 
     /**
      * Sets suspension stiffness.
+     *
      * @param stiffness 60.0f (default) -> 200 f1 car
      */
     public void setStiffness(float stiffness) {
@@ -209,6 +237,7 @@ public abstract class AbstractVehicle {
 
     /**
      * Mass of the vehicle.
+     *
      * @param mass 400f default
      */
     public void setMass(float mass) {
@@ -217,11 +246,11 @@ public abstract class AbstractVehicle {
         }
         this.mass = mass;
     }
-    
+
     protected float getMass() {
         return mass;
     }
-    
+
     public Node getVehicleModelNode() {
         return model;
     }

@@ -5,12 +5,11 @@
 package mygame.entities.vehicles;
 
 import com.jme3.audio.AudioNode;
-import com.jme3.audio.AudioSource;
 import com.jme3.bullet.control.VehicleControl;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.control.AbstractControl;
-import java.util.List;
+import java.util.EnumMap;
 import java.util.Map;
 import mygame.Utils;
 
@@ -20,89 +19,101 @@ import mygame.Utils;
  */
 public class SoundCarEmitterControl extends AbstractControl {
 
-    private final List<AudioNode> audioNodes;
-    private float engineRPM;
+    private final int MAX_SPEED = 200;
+    private final EnumMap<AudioType, AudioNode> sounds = new EnumMap<AudioType, AudioNode>(AudioType.class);
+    private final VehicleControl vehicle;
 
-    /**
-     * List of audio nodes (have to be positional), index indentificate base rpm
-     * based on table:
-     * <pre>
-     * 0 ....... idle
-     * 1 ....... 1300
-     * 2 ....... 1900
-     *
-     * n ....... 1200+(n-1)*600
-     * </pre> optimal rpm for each audioNode.
-     *
-     * @param sounds
-     */
-    public SoundCarEmitterControl(List<AudioNode> sounds) {
-        if (sounds == null || sounds.isEmpty()) {
-            throw new IllegalArgumentException("List of sounds cannot be empty.");
-        }
-        audioNodes = sounds;
-        setEngineRPM(0);
-    }
-
-    public void setEngineRPM(float engineRPM) {
-        this.engineRPM = engineRPM;
-        System.out.println(engineRPM);
-        // set the playback speed and volume for each sample
-
-        for (int index = 0; index < audioNodes.size(); index++) {
-            AudioNode audioNode = audioNodes.get(index);
-
-            float playbackRate = playbackSpeedForSampleAtIndex(index, engineRPM);
-            audioNode.setPitch(playbackRate);
-
-            float sampleVolume = volumeForSampleAtIndex(index, engineRPM);
-            audioNode.setVolume(sampleVolume);
-            
-            if(audioNode.getStatus() != AudioSource.Status.Playing) {
-//                audioNode.play();
-            }
-        }
-    }
-
-    protected float playbackSpeedForSampleAtIndex(int index, float rpm) {
-        float sampleNativeRPM = ((float) index + 1.0f) * 600.0f;
-
-        return (float) Utils.clamp(rpm / sampleNativeRPM, .5f, 1f);
-    }
-
-    protected float volumeForSampleAtIndex(int index, float rpm) {
-        float sampleNativeRPM = ((float) index + 1.0f) * 600.0f;
-
-        // special case 1: the first sample should be at full volume constantly until rpm == sampleNativeRPM
-        if ((index == 0) && (rpm <= sampleNativeRPM)) {
-            return 1.0f;
-        }
-
-        // special case 2: the last sample should play at full volume from sampleNativeRPM upwards
-        if ((index == (audioNodes.size() - 1)) && (rpm >= sampleNativeRPM)) {
-            return 1.0f;
-        }
-
-        // volume should increase linearly from 0 at 0rpm to 1 at sample native rpm
-        float r = rpm / 1000.0f;
-        float i = (float) index;
-        float volume = r / (i + 1.0f);
-
-        // volume should decrease logarithmically (base10) for RPM values > sample native RPM upwards
-        if (volume > 1.3) {
-            volume = 1.3f - (float) Math.log10(r - i);
-        }
-
-        volume = Utils.clamp(volume, 0.0f, 1.0f);
-        return volume;
+    public SoundCarEmitterControl(VehicleControl vehicle) {
+        this.vehicle = vehicle;
     }
 
     @Override
     protected void controlUpdate(float tpf) {
+        float speed = Math.abs(vehicle.getCurrentVehicleSpeedKmHour());
+        float low = MAX_SPEED / 3;
+        float mid = MAX_SPEED / 3 * 2;
+
+        float rev2Pitch, revPitch, idlePitch, lowPitch, midPitch, fastPitch;
+        rev2Pitch = revPitch = idlePitch = lowPitch = midPitch = fastPitch = 1f;
+
+        float rev2Volume, revVolume, idleVolume, lowVolume, midVolume, fastVolume;
+        rev2Volume = revVolume = idleVolume = lowVolume = midVolume = fastVolume = 0f;
+
+        /*if (speed < -10) {
+            float tempSpeed = (speed + 10) * -1;
+            rev2Pitch = tempSpeed / 10 / 2 + 0.5f;
+            rev2Volume = 1f;
+            revPitch = 1f;
+            revVolume = (tempSpeed < 5) ? Math.abs(tempSpeed / (5) - 1) : 0f;
+//            revVolume = Math.abs(tempSpeed / (10) - 1);
+
+        } else if (speed < -2) {
+            float tempSpeed = (speed) * -1;
+            rev2Volume = (tempSpeed > 5) ? (tempSpeed  - (5)) / (5) : 0f;
+//            rev2Volume = (tempSpeed  - (10)) / (5);
+            rev2Pitch = 0.5f;
+            revPitch = tempSpeed / 10 / 2 + 0.5f;
+            revVolume = 1f;
+        } else */if (speed < 10) {
+            idleVolume = 1f;
+        } else if (speed < low) {
+            lowPitch = speed / low / 2 + 0.5f;
+            lowVolume = 1f;
+            midVolume = (speed > low /2) ? (speed  - (low / 2)) / (low /2) : 0f;
+            midPitch = 0.5f;
+        } else if (speed < mid) {
+            float tempSpeed = speed - low;
+            lowPitch = 1f;
+            lowVolume = (tempSpeed < low /2) ? Math.abs(tempSpeed / (low /2) - 1) : 0f;
+            midPitch = tempSpeed / low / 2 + 0.5f;
+            midVolume = 1f;
+            fastVolume = (tempSpeed > low /2) ? (tempSpeed  - (low / 2)) / (low /2) : 0f;
+            fastPitch = 0.5f;
+        } else {
+            float tempSpeed = speed - mid;
+            midPitch = 1f;
+            midVolume = (tempSpeed < low /2) ? Math.abs(tempSpeed / (low /2) - 1) : 0f;
+            fastPitch = tempSpeed / low / 2 + 0.5f;
+            fastVolume = 1f;
+        }
+        play(AudioType.REV2, rev2Volume, rev2Pitch);
+        play(AudioType.REV, revVolume, revPitch);
+        play(AudioType.IDLE, idleVolume, idlePitch);
+        play(AudioType.LOW, lowVolume, lowPitch);
+        play(AudioType.MID, midVolume, midPitch);
+        play(AudioType.FAST, fastVolume, fastPitch);
         
     }
 
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {
+    }
+
+    public void setAudioNode(AudioType type, AudioNode sound) {
+        sounds.put(type, sound);
+    }
+
+    private void play(AudioType sound, float volume, float pitch) {
+        for (Map.Entry<AudioType, AudioNode> entry : sounds.entrySet()) {
+            AudioType audioType = entry.getKey();
+            AudioNode audioNode = entry.getValue();
+            if (audioType == sound) {
+                audioNode.setPitch(Utils.clamp(pitch, 0.5f, 2f));
+                audioNode.setVolume(Utils.clamp(volume, 0f, 1f));
+            }
+        }
+    }
+
+    public void cleanup() {
+        for (Map.Entry<AudioType, AudioNode> entry : sounds.entrySet()) {
+            AudioNode audioNode = entry.getValue();
+            audioNode.stop();
+        }
+        sounds.clear();
+    }
+
+    public static enum AudioType {
+
+        IDLE, LOW, MID, FAST, REV, REV2
     }
 }

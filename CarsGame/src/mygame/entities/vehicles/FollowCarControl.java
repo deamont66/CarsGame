@@ -47,7 +47,7 @@ public class FollowCarControl extends AbstractControl {
                 } else if ((vehicle.getLinearVelocity().length() - 2) != 0) {
                     amount = tpf / (1 / (vehicle.getLinearVelocity().length() - 2));
                 }
-                System.out.println(amount);
+//                System.out.println(amount);
                 cloneQuat.slerp(directionQuaternion, Utils.clamp(amount, 0, 1));
                 // we rotate offset to our direction
                 Vector3f offset = cloneQuat.mult(camBehindOffset);

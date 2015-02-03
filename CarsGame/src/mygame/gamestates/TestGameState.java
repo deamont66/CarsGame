@@ -40,12 +40,16 @@ import com.jme3.water.SimpleWaterProcessor;
 import com.jme3.water.WaterFilter;
 import de.lessvoid.nifty.elements.Element;
 import java.util.Iterator;
+import mygame.CodeListener;
 
 import mygame.Settings;
 import mygame.entities.vehicles.AbstractVehicle;
+import mygame.entities.vehicles.BasicVehicle;
+import mygame.entities.vehicles.Ferrari;
 import mygame.entities.vehicles.FollowCarControl;
 import mygame.entities.vehicles.GoKart;
 import mygame.entities.vehicles.SoundCarEmitterNode;
+import mygame.entities.vehicles.TestVehicle;
 import mygame.guicontrollers.GameGuiController;
 
 /**
@@ -53,7 +57,7 @@ import mygame.guicontrollers.GameGuiController;
  * @author JiriSimecek
  */
 public class TestGameState extends AbstractGameState {
-    
+
     private BulletAppState physics;
     private DepthOfFieldFilter dofFilter;
     private WaterFilter water;
@@ -62,7 +66,6 @@ public class TestGameState extends AbstractGameState {
     private SoundCarEmitterNode soundCarEmitterNode;
     private FollowCarControl followCarControl;
     private Geometry waterGeo;
-    
     private float waterHeight = 0f;
     private float time = 0.0f;
 
@@ -73,16 +76,22 @@ public class TestGameState extends AbstractGameState {
         this.app.getNifty().fromXml("Interface/inGame.xml", "start", new GameGuiController(this.app));
 
         this.physics = new BulletAppState();
-        this.physics.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
+        this.physics.setThreadingType(BulletAppState.ThreadingType.SEQUENTIAL);
         stateManager.attach(this.physics);
 //        this.physics.getPhysicsSpace().enableDebug(app.getAssetManager());
 
         this.physics.getPhysicsSpace().addTickListener(new PhysicsTickListener() {
             public void prePhysicsTick(PhysicsSpace space, float tpf) {
-                car.getVehicleControl().accelerate(-accelerationValue);
+                car.getVehicleControl().accelerate(0, accelerationValue);
+                car.getVehicleControl().accelerate(1, accelerationValue);
                 car.getVehicleControl().steer(steeringValue);
                 if (rearBrake > 0 || brake > 0) {
                     car.getVehicleControl().accelerate(0);
+                }
+                if(brake > 0 && car.getVehicleControl().getCurrentVehicleSpeedKmHour() < 1) {
+                    car.getVehicleControl().accelerate(-100);
+                } else {
+                    car.getVehicleControl().brake(brake);
                 }
                 car.getVehicleControl().brake(2, rearBrake);
                 car.getVehicleControl().brake(3, rearBrake);
@@ -138,7 +147,7 @@ public class TestGameState extends AbstractGameState {
             waterProcessor.setWaveSpeed(0.05f);       // speed of waves
 
             Quad quad = new Quad(3000, 3000);
-            quad.scaleTextureCoordinates(new Vector2f(45f, 45f));
+            quad.scaleTextureCoordinates(new Vector2f(60f, 60f));
 
             waterGeo = new Geometry("water", quad);
             waterGeo.setLocalTranslation(-1500, waterHeight + 0.7f, 1500);
@@ -161,7 +170,7 @@ public class TestGameState extends AbstractGameState {
             filter.setNumColors(8);
             filter.setStrength(0.3f);
 //            fpp.addFilter(filter);
-            
+
             TranslucentBucketFilter translucent = new TranslucentBucketFilter();
             fpp.addFilter(translucent);
 
@@ -212,7 +221,7 @@ public class TestGameState extends AbstractGameState {
             this.app.getViewPort().addProcessor(fpp);
         }
     }
-    
+
     @Override
     public void initModels() {
         rootNode.attachChild(SkyFactory.createSky(this.app.getAssetManager(), "Textures/Sky/Bright/BrightSky.dds", false));
@@ -223,28 +232,24 @@ public class TestGameState extends AbstractGameState {
         s.addControl(new RigidBodyControl(0));
         physics.getPhysicsSpace().add(s);
         rootNode.attachChild(s);
-        
+
         s = this.app.getAssetManager().loadModel("Models/upRoad.j3o");
         s.setLocalTranslation(212, 0, 0);
         s.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         s.addControl(new RigidBodyControl(0));
         physics.getPhysicsSpace().add(s);
         rootNode.attachChild(s);
-        
+
         s = this.app.getAssetManager().loadModel("Models/upRoad.j3o");
         s.setLocalTranslation(224, 0, 0);
         s.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         s.addControl(new RigidBodyControl(0));
         physics.getPhysicsSpace().add(s);
         rootNode.attachChild(s);
-        
-        // car        
-        car = new GoKart(this.app.getAssetManager());
-        car.attachTo(rootNode, physics.getPhysicsSpace());
 
-        // --- Sound ---
-        soundCarEmitterNode = new SoundCarEmitterNode(app.getAssetManager());
-        car.getVehicleModelNode().attachChild(soundCarEmitterNode);
+        // car        
+        car = new GoKart(this.app.getAssetManager(), ColorRGBA.Pink);
+        car.attachTo(rootNode, physics.getPhysicsSpace());
 
         // --- Camera ---
         // Disable the default flyby cam
@@ -259,10 +264,10 @@ public class TestGameState extends AbstractGameState {
         car.getVehicleModelNode().addControl(followCarControl);
 //        car.getVehicleControl().setPhysicsLocation(new Vector3f(4, 40, 4));
         car.getVehicleControl().setPhysicsLocation(new Vector3f(0, 5, 0));
-        
+
 //        loadTerrain(app.getAssetManager(), "Textures/Terrains/alps/heightMapSmooth.png", "Textures/Terrains/alps/diffuseMap.png", 1024, 0.5f);
         loadTerrain(app.getAssetManager(), "Textures/Terrains/temp/heightmap_1.png", "Textures/Terrains/temp/textureShadow.png", 1024, 0.5f);
-        
+
         // tree
         Spatial tree = this.app.getAssetManager().loadModel("Models/Tree/Tree.mesh.j3o");
         tree.setShadowMode(RenderQueue.ShadowMode.Cast);
@@ -305,69 +310,18 @@ public class TestGameState extends AbstractGameState {
         app.getInputManager().addMapping("Debug", new KeyTrigger(KeyInput.KEY_1));
         app.getInputManager().addMapping("Exit", new KeyTrigger(KeyInput.KEY_ESCAPE));
 
-        app.getInputManager().addListener(new ActionListener() {
-            float accelerationForce = 2000.0f;
-            float brakeForce = 1000.0f;
+        app.getInputManager().addListener(actionListener, new String[]{"Accelerate", "Brake", "Left", "Right", "Handbrake", "Camera", "Reset", "Exit", "Debug"});
 
-            public void onAction(String name, boolean isPressed, float tpf) {
-                if (name.equals("Exit") && !isPressed) {
-                    if (!TestGameState.this.isPaused()) {
-                        TestGameState.this.pause();
-                    } else {
-                        TestGameState.this.resume();
-                        Element element = app.getNifty().getCurrentScreen().findElementByName("videoSettings");
-                        element.setVisible(false);
-                        element = app.getNifty().getCurrentScreen().findElementByName("renderingSettings");
-                        element.setVisible(false);
-                        element = app.getNifty().getCurrentScreen().findElementByName("keybindingSettings");
-                        element.setVisible(false);
-                        element = app.getNifty().getCurrentScreen().findElementByName("backToMenu");
-                        element.setVisible(false);
-                        element = app.getNifty().getCurrentScreen().findElementByName("exitGame");
-                        element.setVisible(false);
-                    }
-                    Element element = app.getNifty().getCurrentScreen().findElementByName("ingameMenu");
-                    element.setVisible(TestGameState.this.isPaused());
-                    
-                } else if (name.equals("Left")) {
-                    if (isPressed) {
-                        steeringValue += .5f;
-                    } else {
-                        steeringValue += -.5f;
-                    }
-                } else if (name.equals("Right")) {
-                    if (isPressed) {
-                        steeringValue += -.5f;
-                    } else {
-                        steeringValue += .5f;
-                    }
-                } else if (name.equals("Accelerate")) {
-                    if (isPressed) {
-                        accelerationValue -= accelerationForce;
-                    } else {
-                        accelerationValue += accelerationForce;
-                    }
-                } else if (name.equals("Brake")) {
-                    if (isPressed) {
-                        accelerationValue += brakeForce * 2;
-                    } else {
-                        accelerationValue -= brakeForce * 2;
-                    }
-                } else if (name.equals("Reset") && !isPressed) {
-                    initKeyEvents();
-                    initializeRenderersAndFPPs();
-                } else if (name.equals("Handbrake")) {
-                    rearBrake = isPressed ? 1000 : 0;
-                } else if (name.equals("Camera") && !isPressed) {
-                    followCarControl.setCameraMode(FollowCarControl.CameraMode.getNext(followCarControl.getCameraMode()));
-                } else if(name.equals("Debug") && !isPressed) {
-                    System.out.println(TestGameState.this.car.getVehicleControl().getPhysicsLocation());
-                    System.out.println(TestGameState.this.car.getVehicleControl().getPhysicsRotation());
-                }
-            }
-        }, "Accelerate", "Brake", "Left", "Right", "Handbrake", "Camera", "Reset", "Exit", "Debug");
+        codeListener.addCodeMapping("unstuck");
+        codeListener.addCodeMapping("car1");
+        codeListener.addCodeMapping("car2");
+        codeListener.addCodeMapping("car3");
+        codeListener.addCodeMapping("car4");
+        
+        app.getInputManager().removeRawInputListener(codeListener);
+        app.getInputManager().addRawInputListener(codeListener);
     }
-    
+
     @Override
     public void update(float tpf) {
         if (dofFilter != null) {
@@ -378,6 +332,9 @@ public class TestGameState extends AbstractGameState {
             waterHeight = (float) Math.cos(((time * 0.6f) % FastMath.TWO_PI)) * 0.2f - 0.1f;
 //            water.setWaterHeight(waterHeight);
         }
+        if(car instanceof GoKart) {
+            ((GoKart)car).setSteeringWheelAngle(steeringValue);
+        }
 
         app.getListener().setLocation(app.getCamera().getLocation());
         app.getListener().setRotation(app.getCamera().getRotation());
@@ -386,7 +343,10 @@ public class TestGameState extends AbstractGameState {
     @Override
     public void cleanup() {
         super.cleanup();
+        
         this.app.getStateManager().detach(physics);
+        this.app.getInputManager().removeRawInputListener(codeListener);
+        car.cleanup();
     }
 
     private void loadTerrain(AssetManager assetManager, String heightMap, String diffuseTexture, int size, float heightScale) {
@@ -435,11 +395,140 @@ public class TestGameState extends AbstractGameState {
 
 
         CollisionShape terrainShape = CollisionShapeFactory.createMeshShape(terrain);
-        terrain.addControl(new RigidBodyControl(terrainShape, 0));
+        RigidBodyControl rbc = new RigidBodyControl(terrainShape, 0);
+        rbc.setFriction(0.2f);
+        terrain.addControl(rbc);
         physics.getPhysicsSpace().add(terrain);
     }
 
     public float getCarSpeed() {
         return car.getVehicleControl().getCurrentVehicleSpeedKmHour();
     }
+    
+    private ActionListener actionListener = new ActionListener() {
+        float accelerationForce = 8000.0f;
+        float brakeForce = 1000.0f;
+
+        public void onAction(String name, boolean isPressed, float tpf) {
+            if (name.equals("Exit") && !isPressed) {
+                if (!TestGameState.this.isPaused()) {
+                    TestGameState.this.pause();
+                } else {
+                    TestGameState.this.resume();
+                    Element element = app.getNifty().getCurrentScreen().findElementByName("videoSettings");
+                    element.setVisible(false);
+                    element = app.getNifty().getCurrentScreen().findElementByName("renderingSettings");
+                    element.setVisible(false);
+                    element = app.getNifty().getCurrentScreen().findElementByName("keybindingSettings");
+                    element.setVisible(false);
+                    element = app.getNifty().getCurrentScreen().findElementByName("backToMenu");
+                    element.setVisible(false);
+                    element = app.getNifty().getCurrentScreen().findElementByName("exitGame");
+                    element.setVisible(false);
+                }
+                Element element = app.getNifty().getCurrentScreen().findElementByName("ingameMenu");
+                element.setVisible(TestGameState.this.isPaused());
+
+            } else if (name.equals("Left")) {
+                if (isPressed) {
+                    steeringValue += .5f;
+                } else {
+                    steeringValue += -.5f;
+                }
+            } else if (name.equals("Right")) {
+                if (isPressed) {
+                    steeringValue += -.5f;
+                } else {
+                    steeringValue += .5f;
+                }
+            } else if (name.equals("Accelerate")) {
+                if (isPressed) {
+                    accelerationValue = accelerationForce;
+                } else {
+                    accelerationValue = 0;
+                }
+            } else if (name.equals("Brake")) {
+                if (isPressed) {
+                    brake = brakeForce;
+                } else {
+                    brake = 0;
+                }
+            } else if (name.equals("Reset") && !isPressed) {
+                initKeyEvents();
+                initializeRenderersAndFPPs();
+            } else if (name.equals("Handbrake")) {
+                rearBrake = isPressed ? 5000 : 0;
+            } else if (name.equals("Camera") && !isPressed) {
+                followCarControl.setCameraMode(FollowCarControl.CameraMode.getNext(followCarControl.getCameraMode()));
+            } else if (name.equals("Debug") && !isPressed) {
+                System.out.println(TestGameState.this.car.getVehicleControl().getPhysicsLocation());
+                System.out.println(TestGameState.this.car.getVehicleControl().getPhysicsRotation());
+            }
+        }
+    };
+    private CodeListener codeListener = new CodeListener() {
+        @Override
+        public void onCodeDown(String name, String code) {
+            if (name.equals("unstuck")) {
+                car.getVehicleControl().setPhysicsLocation(car.getVehicleControl().getPhysicsLocation().add(new Vector3f(0, 5, 0)));
+                car.getVehicleControl().setPhysicsRotation(Quaternion.IDENTITY);
+            } else if(name.equals("car1")) {
+                Vector3f oldPos = car.getVehicleControl().getPhysicsLocation();
+                Quaternion oldRot = car.getVehicleControl().getPhysicsRotation();
+                
+                car.getVehicleModelNode().removeControl(followCarControl);
+                rootNode.detachChild(car.getVehicleModelNode());
+                physics.getPhysicsSpace().remove(car.getVehicleControl());
+                car.cleanup();
+                
+                car = new GoKart(app.getAssetManager());
+                car.attachTo(rootNode, physics.getPhysicsSpace());
+                car.getVehicleModelNode().addControl(followCarControl);
+                car.getVehicleControl().setPhysicsLocation(oldPos);
+                car.getVehicleControl().setPhysicsRotation(oldRot);
+            } else if(name.equals("car2")) {
+                Vector3f oldPos = car.getVehicleControl().getPhysicsLocation();
+                Quaternion oldRot = car.getVehicleControl().getPhysicsRotation();
+                
+                car.getVehicleModelNode().removeControl(followCarControl);
+                rootNode.detachChild(car.getVehicleModelNode());
+                physics.getPhysicsSpace().remove(car.getVehicleControl());
+                car.cleanup();
+                
+                car = new TestVehicle(app.getAssetManager());
+                car.attachTo(rootNode, physics.getPhysicsSpace());
+                car.getVehicleModelNode().addControl(followCarControl);
+                car.getVehicleControl().setPhysicsLocation(oldPos);
+                car.getVehicleControl().setPhysicsRotation(oldRot);
+            } else if(name.equals("car3")) {
+                Vector3f oldPos = car.getVehicleControl().getPhysicsLocation();
+                Quaternion oldRot = car.getVehicleControl().getPhysicsRotation();
+                
+                car.getVehicleModelNode().removeControl(followCarControl);
+                rootNode.detachChild(car.getVehicleModelNode());
+                physics.getPhysicsSpace().remove(car.getVehicleControl());
+                car.cleanup();
+
+                car = new BasicVehicle(app.getAssetManager());
+                car.attachTo(rootNode, physics.getPhysicsSpace());
+                car.getVehicleModelNode().addControl(followCarControl);
+                car.getVehicleControl().setPhysicsLocation(oldPos);
+                car.getVehicleControl().setPhysicsRotation(oldRot);
+            } else if(name.equals("car4")) {
+                Vector3f oldPos = car.getVehicleControl().getPhysicsLocation();
+                Quaternion oldRot = car.getVehicleControl().getPhysicsRotation();
+                
+                car.getVehicleModelNode().removeControl(followCarControl);
+                rootNode.detachChild(car.getVehicleModelNode());
+                physics.getPhysicsSpace().remove(car.getVehicleControl());
+                car.cleanup();
+
+                car = new Ferrari(app.getAssetManager());
+                car.attachTo(rootNode, physics.getPhysicsSpace());
+                car.getVehicleModelNode().addControl(followCarControl);
+                car.getVehicleControl().setPhysicsLocation(oldPos);
+                car.getVehicleControl().setPhysicsRotation(oldRot);
+            }
+        }
+    };
 }

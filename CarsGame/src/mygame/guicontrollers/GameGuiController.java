@@ -124,7 +124,7 @@ public class GameGuiController extends AbstractGuiController {
             TestGameState state = app.getStateManager().getState(TestGameState.class);
             if (state != null && speed != null) {
                 float carSpeed = state.getCarSpeed();
-                speed.getRenderer(TextRenderer.class).setText((int) carSpeed + "");
+                speed.getRenderer(TextRenderer.class).setText(Math.round(carSpeed) + "");
             }
         }
         if (app.getNifty().getCurrentScreen().getScreenId().equals("loading")) {
