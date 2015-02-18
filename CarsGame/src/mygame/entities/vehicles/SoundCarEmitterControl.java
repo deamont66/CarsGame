@@ -11,6 +11,7 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.control.AbstractControl;
 import java.util.EnumMap;
 import java.util.Map;
+import mygame.Settings;
 import mygame.Utils;
 
 /**
@@ -19,9 +20,10 @@ import mygame.Utils;
  */
 public class SoundCarEmitterControl extends AbstractControl {
 
-    private final int MAX_SPEED = 200;
+    private final int MAX_SPEED = 150;
     private final EnumMap<AudioType, AudioNode> sounds = new EnumMap<AudioType, AudioNode>(AudioType.class);
     private final VehicleControl vehicle;
+    private Settings settings = Settings.getSettings();
 
     public SoundCarEmitterControl(VehicleControl vehicle) {
         this.vehicle = vehicle;
@@ -29,6 +31,7 @@ public class SoundCarEmitterControl extends AbstractControl {
 
     @Override
     protected void controlUpdate(float tpf) {
+        
         float speed = Math.abs(vehicle.getCurrentVehicleSpeedKmHour());
         float low = MAX_SPEED / 3;
         float mid = MAX_SPEED / 3 * 2;
@@ -76,13 +79,13 @@ public class SoundCarEmitterControl extends AbstractControl {
             fastPitch = tempSpeed / low / 2 + 0.5f;
             fastVolume = 1f;
         }
-        play(AudioType.REV2, rev2Volume, rev2Pitch);
-        play(AudioType.REV, revVolume, revPitch);
-        play(AudioType.IDLE, idleVolume, idlePitch);
-        play(AudioType.LOW, lowVolume, lowPitch);
-        play(AudioType.MID, midVolume, midPitch);
-        play(AudioType.FAST, fastVolume, fastPitch);
-        
+        float globalVolume = settings.getVolume();
+        play(AudioType.REV2, rev2Volume * globalVolume, rev2Pitch);
+        play(AudioType.REV, revVolume * globalVolume, revPitch);
+        play(AudioType.IDLE, idleVolume * globalVolume, idlePitch);
+        play(AudioType.LOW, lowVolume * globalVolume, lowPitch);
+        play(AudioType.MID, midVolume * globalVolume, midPitch);
+        play(AudioType.FAST, fastVolume * globalVolume, fastPitch);
     }
 
     @Override

@@ -70,7 +70,7 @@ public abstract class AbstractVehicle {
         compoundShape.addChildShape(chassiCollisionShape, centerOfMassOffset);
 
         //create vehicle node
-        control = new VehicleControl(compoundShape, mass);
+        control = new FrictionVehicleControl(compoundShape, mass);
         model.addControl(control);
 
         control.setSuspensionCompression(compValue * 2.0f * FastMath.sqrt(stiffness));

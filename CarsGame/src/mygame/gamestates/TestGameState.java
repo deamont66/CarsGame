@@ -12,6 +12,7 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
@@ -29,6 +30,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
 import com.jme3.shadow.*;
+import com.jme3.terrain.Terrain;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.heightmap.AbstractHeightMap;
@@ -48,7 +50,6 @@ import mygame.entities.vehicles.BasicVehicle;
 import mygame.entities.vehicles.Ferrari;
 import mygame.entities.vehicles.FollowCarControl;
 import mygame.entities.vehicles.GoKart;
-import mygame.entities.vehicles.SoundCarEmitterNode;
 import mygame.entities.vehicles.TestVehicle;
 import mygame.guicontrollers.GameGuiController;
 
@@ -63,11 +64,11 @@ public class TestGameState extends AbstractGameState {
     private WaterFilter water;
     private AbstractVehicle car;
     private float steeringValue, accelerationValue, rearBrake, brake;
-    private SoundCarEmitterNode soundCarEmitterNode;
     private FollowCarControl followCarControl;
     private Geometry waterGeo;
     private float waterHeight = 0f;
     private float time = 0.0f;
+    private TerrainQuad terrain;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -82,25 +83,30 @@ public class TestGameState extends AbstractGameState {
 
         this.physics.getPhysicsSpace().addTickListener(new PhysicsTickListener() {
             public void prePhysicsTick(PhysicsSpace space, float tpf) {
-                car.getVehicleControl().accelerate(0, accelerationValue);
-                car.getVehicleControl().accelerate(1, accelerationValue);
+                car.getVehicleControl().accelerate(2, accelerationValue);
+                car.getVehicleControl().accelerate(3, accelerationValue);
                 car.getVehicleControl().steer(steeringValue);
-                if (rearBrake > 0 || brake > 0) {
-                    car.getVehicleControl().accelerate(0);
-                }
-                if(brake > 0 && car.getVehicleControl().getCurrentVehicleSpeedKmHour() < 1) {
-                    car.getVehicleControl().accelerate(-100);
+//
+                if(car.getVehicleControl().getCurrentVehicleSpeedKmHour() < 1 && brake > 0) { 
+                    car.getVehicleControl().accelerate(2, -2000);
+                    car.getVehicleControl().accelerate(3, -2000);
+                    car.getVehicleControl().brake(0);
                 } else {
                     car.getVehicleControl().brake(brake);
                 }
-                car.getVehicleControl().brake(2, rearBrake);
-                car.getVehicleControl().brake(3, rearBrake);
             }
 
             public void physicsTick(PhysicsSpace space, float tpf) {
+                Vector3f forward = car.getVehicleControl().getPhysicsRotation().mult(Vector3f.UNIT_Y.negate()).normalizeLocal();
+                   Ray ray = new Ray(car.getVehicleControl().getPhysicsLocation().addLocal(0f, 0.1f, 0f), forward);
+                   CollisionResults results = new CollisionResults();
+                   terrain.collideWith(ray, results);
+                   if(results.size() >= 1) {
+                       System.out.println(results.getCollision(0).getDistance() + ", " + forward);
+                   }
             }
         });
-
+        
         initModels();
 
         initKeyEvents();
@@ -264,9 +270,8 @@ public class TestGameState extends AbstractGameState {
         car.getVehicleModelNode().addControl(followCarControl);
 //        car.getVehicleControl().setPhysicsLocation(new Vector3f(4, 40, 4));
         car.getVehicleControl().setPhysicsLocation(new Vector3f(0, 5, 0));
-
-//        loadTerrain(app.getAssetManager(), "Textures/Terrains/alps/heightMapSmooth.png", "Textures/Terrains/alps/diffuseMap.png", 1024, 0.5f);
-        loadTerrain(app.getAssetManager(), "Textures/Terrains/temp/heightmap_1.png", "Textures/Terrains/temp/textureShadow.png", 1024, 0.5f);
+        //        loadTerrain(app.getAssetManager(), "Textures/Terrains/alps/heightMapSmooth.png", "Textures/Terrains/alps/diffuseMap.png", 1024, 0.5f);
+        terrain = loadTerrain(app.getAssetManager(), "Textures/Terrains/temp/heightmap_1.png", "Textures/Terrains/temp/textureShadow.png", 1024, 0.5f);
 
         // tree
         Spatial tree = this.app.getAssetManager().loadModel("Models/Tree/Tree.mesh.j3o");
@@ -277,9 +282,20 @@ public class TestGameState extends AbstractGameState {
         treeShape.addChildShape(new BoxCollisionShape(new Vector3f(0.5f, 2.5f, 0.5f)), new Vector3f(0, 2.5f, 0));
         tree.addControl(new RigidBodyControl(treeShape, 0));
         physics.getPhysicsSpace().add(tree);
-
         rootNode.attachChild(tree);
 
+        Spatial road = this.app.getAssetManager().loadModel("Models/roadscreen.j3o");
+        float height = terrain.getHeight(new Vector2f(120f, 40f)) - 63f;
+        System.out.println(height);
+        road.setLocalTranslation(120f, height, 40);
+        CollisionShape roadShape = CollisionShapeFactory.createMeshShape(road);
+        RigidBodyControl roadPhysicsControl = new RigidBodyControl(roadShape, 0);
+        roadPhysicsControl.setUserObject("road");
+        road.addControl(roadPhysicsControl);
+        physics.getPhysicsSpace().add(road);
+        rootNode.attachChild(road);
+        
+        
         Box b = new Box(1, 1, 1);
         Geometry geom = new Geometry("Box", b);
         Material mat = this.app.getAssetManager().loadMaterial("Materials/bricks.j3m");
@@ -349,7 +365,7 @@ public class TestGameState extends AbstractGameState {
         car.cleanup();
     }
 
-    private void loadTerrain(AssetManager assetManager, String heightMap, String diffuseTexture, int size, float heightScale) {
+    private TerrainQuad loadTerrain(AssetManager assetManager, String heightMap, String diffuseTexture, int size, float heightScale) {
         Material mat_terrain;
 
         /**
@@ -393,12 +409,13 @@ public class TestGameState extends AbstractGameState {
         TerrainLodControl control = new TerrainLodControl(terrain, app.getCamera());
         terrain.addControl(control);
 
-
         CollisionShape terrainShape = CollisionShapeFactory.createMeshShape(terrain);
         RigidBodyControl rbc = new RigidBodyControl(terrainShape, 0);
-        rbc.setFriction(0.2f);
+        rbc.setUserObject("terrain");
         terrain.addControl(rbc);
         physics.getPhysicsSpace().add(terrain);
+        
+        return terrain;
     }
 
     public float getCarSpeed() {
@@ -407,7 +424,7 @@ public class TestGameState extends AbstractGameState {
     
     private ActionListener actionListener = new ActionListener() {
         float accelerationForce = 8000.0f;
-        float brakeForce = 1000.0f;
+        float brakeForce = 300.0f;
 
         public void onAction(String name, boolean isPressed, float tpf) {
             if (name.equals("Exit") && !isPressed) {

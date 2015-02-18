@@ -38,6 +38,7 @@ public class MenuGuiController extends AbstractGuiController {
             updateElementText("resolution", resolution[0] + "x" + resolution[1]);
             updateElementText("vsync", settings.isVSyncEnabled());
             updateElementText("fullscreen", settings.isFullscreenEnabled());
+            updateElementText("volume", (settings.getVolume() * 100) + "%");
         } else if (app.getNifty().getCurrentScreen().getScreenId().equals("renderingSettings")) {
             updateSamplesText(settings.getNumberOfSamples());
             updateElementText("ShadowsType", settings.getShadowType());
@@ -123,6 +124,25 @@ public class MenuGuiController extends AbstractGuiController {
             } else if (next) {
                 Settings.getSettings().setNumberOfSamples(samples[i]);
                 updateSamplesText(samples[i]);
+                break;
+            }
+        }
+    }
+    
+    public void changeVolume() {
+        float[] values = new float[]{0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+        String[] texts = new String[]{"0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"};
+        
+        boolean next = false;
+        for (int i = 0; i < values.length + 1; i++) {
+            if (i == values.length) {
+                i = 0;
+            }
+            if (values[i] == Settings.getSettings().getVolume()) {
+                next = true;
+            } else if (next) {
+                Settings.getSettings().setVolume(values[i]);
+                updateElementText("volume", texts[i]);
                 break;
             }
         }

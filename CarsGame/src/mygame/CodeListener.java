@@ -61,7 +61,6 @@ public abstract class CodeListener implements RawInputListener {
                     onCodeDown(name, new StringBuffer(code).reverse().toString());
                 }
             }
-            System.out.println(lastInput);
         }
     }
 

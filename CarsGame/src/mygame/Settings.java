@@ -88,6 +88,14 @@ public class Settings {
     public void setKeyBinding(String key, int keyValue) {
         settings.setProperty("key_" + key, String.valueOf(keyValue));
     }
+    
+    public float getVolume() {
+        return Float.valueOf(settings.getProperty("volume", "1"));
+    }
+    
+    public void setVolume(float volume) {
+        settings.setProperty("volume", String.valueOf(volume));
+    }
 
     public String getTitle() {
         return "Cars";

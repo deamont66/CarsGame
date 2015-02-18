@@ -1,0 +1,31 @@
+Material MyMaterial : Common/MatDefs/Light/Lighting.j3md {
+    MaterialParameters {
+        Minnaert : false
+        Specular : 0.26676032 0.26676032 0.26676032 1.0
+        Diffuse : 8928 0.14308928 0.14308928 1.0
+        UseMaterialColors : false
+        ParallaxHeight : 0.05
+        Ambient : 0.0 0.0 0.0 1.0
+        Shininess : 0.0
+        WardIso : false
+        DiffuseMap : Flip Repeat Textures/road.png
+        VTangent : true
+        HighQuality : false
+        VertexLighting : true
+        SteepParallax : false
+        UseVertexColor : false
+        UseAlpha : false
+        LowQuality : false
+    }
+    AdditionalRenderState {
+      FaceCull Back
+      Wireframe Off
+      DepthWrite On
+      PolyOffset 0.0 0.0
+      AlphaTestFalloff 0.0
+      Blend Off
+      PointSprite Off
+      ColorWrite On
+      DepthTest On
+    }
+}
