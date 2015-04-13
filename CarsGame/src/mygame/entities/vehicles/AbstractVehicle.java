@@ -4,18 +4,19 @@
  */
 package mygame.entities.vehicles;
 
+import mygame.entities.vehicles.utils.FrictionVehicleControl;
+import mygame.entities.vehicles.utils.NewSoundCarEmitterNode;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
-import com.jme3.bullet.control.VehicleControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import mygame.Utils;
+import mygame.entities.vehicles.utils.FollowCarControl;
 
 /**
  *
@@ -24,7 +25,7 @@ import mygame.Utils;
 public abstract class AbstractVehicle {
 
     private final AssetManager assetManager;
-    protected VehicleControl control;
+    protected FrictionVehicleControl control;
     protected Node model;
     protected String chassiName, wheel_LF, wheel_LR, wheel_RF, wheel_RR;
     private boolean initialized = false;
@@ -42,7 +43,7 @@ public abstract class AbstractVehicle {
     protected float frictionSlip = 10000f;
     protected Vector3f wheelDirection = new Vector3f(0, -1, 0);
     protected Vector3f wheelAxle = new Vector3f(-1, 0, 0);
-    private SoundCarEmitterNode soundNode;
+    private NewSoundCarEmitterNode soundNode;
 
     public AbstractVehicle(AssetManager manager) {
         this.assetManager = manager;
@@ -112,9 +113,8 @@ public abstract class AbstractVehicle {
         wheels4.center();
         control.addWheel(wheels4.getParent(), new Vector3f(wheelOffset.x, wheelOffset.y, -wheelOffset.z),
                 wheelDirection, wheelAxle, suspensionRestLength, wheelRadius, false);
-
-
-        soundNode = new SoundCarEmitterNode(getAssetManager(), control);
+        
+        soundNode = new NewSoundCarEmitterNode(getAssetManager(), control);
         model.attachChild(soundNode);
     }
 
@@ -273,7 +273,7 @@ public abstract class AbstractVehicle {
         }
     }
 
-    public VehicleControl getVehicleControl() {
+    public FrictionVehicleControl getVehicleControl() {
         if (initialized) {
             return control;
         }

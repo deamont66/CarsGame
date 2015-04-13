@@ -23,7 +23,6 @@ public class GoKart extends AbstractVehicle {
 
     public GoKart(AssetManager manager) {
         super(manager);
-
     }
 
     public GoKart(AssetManager manager, ColorRGBA color) {
@@ -75,5 +74,9 @@ public class GoKart extends AbstractVehicle {
             Node wheel = Utils.findNode(model, "stearing wheel");            
             wheel.setLocalRotation(newRot);
         }
+    }
+
+    public ColorRGBA getColor() {
+        return color;
     }
 }

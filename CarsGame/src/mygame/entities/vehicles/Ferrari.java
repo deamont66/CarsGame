@@ -1,5 +1,6 @@
 package mygame.entities.vehicles;
 
+import mygame.entities.vehicles.utils.FrictionVehicleControl;
 import com.jme3.asset.AssetManager;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.collision.shapes.CollisionShape;
@@ -39,7 +40,7 @@ public class Ferrari extends AbstractVehicle {
         CollisionShape carHull = CollisionShapeFactory.createDynamicMeshShape(chasis);
 
         //Create a vehicle control
-        control = new VehicleControl(carHull, mass);
+        control = new FrictionVehicleControl(carHull, mass);
         model.addControl(control);
 
         //Setting default values for wheels

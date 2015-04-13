@@ -2,15 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package mygame.entities.vehicles;
+package mygame.entities.vehicles.utils;
 
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.VehicleControl;
 import com.jme3.bullet.objects.VehicleWheel;
-import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import java.util.ArrayList;
+import mygame.Utils;
 
 public class FrictionVehicleControl extends VehicleControl {
 
@@ -37,6 +37,7 @@ public class FrictionVehicleControl extends VehicleControl {
     }
     protected ArrayList<WheelState> wheelStates = new ArrayList<WheelState>();
     protected float rollingFriction = 20f;
+    public float accelerationInput = 0;
 
     @Override
     public VehicleWheel addWheel(Spatial spat, Vector3f connectionPoint, Vector3f direction, Vector3f axle, float suspensionRestLength, float wheelRadius, boolean isFrontWheel) {
@@ -51,8 +52,10 @@ public class FrictionVehicleControl extends VehicleControl {
 
     }
 
+    
     @Override
     public void accelerate(float force) {
+        accelerationInput = Utils.clamp(force, 0, 1);
         for (int i = 0; i < wheels.size(); i++) {
             accelerate(i, force);
         }

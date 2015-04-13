@@ -1,5 +1,6 @@
 package mygame.entities.vehicles;
 
+import mygame.entities.vehicles.utils.FrictionVehicleControl;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import com.jme3.bullet.control.VehicleControl;
@@ -56,7 +57,7 @@ public class Impreza extends AbstractVehicle {
         compoundShape.addChildShape(chassiCollisionShape, new Vector3f(0, 0.2f, 0.5f));
 
         //create vehicle node
-        control = new VehicleControl(compoundShape, mass);
+        control = new FrictionVehicleControl(compoundShape, mass);
         model.addControl(control);
 
         control.setSuspensionCompression(compValue * 2.0f * FastMath.sqrt(stiffness));

@@ -10,14 +10,17 @@ import mygame.gamestates.MenuGameState;
 
 public class Main extends SimpleApplication {
 
+    public static SimpleApplication APP;
+    
     private final String version = "0.2";
+    
     private Nifty nifty;
     private int fps, frameCounter = 0;
     private float secondCounter = 0.0f;
 
     public static void main(String[] args) {
         Main app = new Main();
-
+        APP = app;
         AppSettings settings = Settings.getSettings().getAppSettings();
         app.setSettings(settings);
         app.setShowSettings(false);

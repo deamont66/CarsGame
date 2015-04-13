@@ -18,6 +18,7 @@ import java.io.IOException;
 import mygame.KeyBindingInputListener;
 import mygame.Settings;
 import mygame.gamestates.MenuGameState;
+import mygame.gamestates.PreGameSettingsGameState;
 import mygame.gamestates.TestGameState;
 
 /**
@@ -65,7 +66,7 @@ public class MenuGuiController extends AbstractGuiController {
         if (menu != null) {
             app.getStateManager().detach(menu);
         }
-        app.getStateManager().attach(new TestGameState());
+        app.getStateManager().attach(new PreGameSettingsGameState());
     }
 
     public void stop() {

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<varlist name="Settings">
+	<varlist name="MapViewOptions">
+		<varlist name="HF">
+			<string name="IndexedPalette">Monochrome</string>
+		</varlist>
+		<varlist name="WS">
+			<string name="IndexedPalette">Thermal</string>
+		</varlist>
+		<varlist name="SH">
+			<string name="IndexedPalette">InverseBoolean</string>
+		</varlist>
+	</varlist>
+	<varlist name="HF">
+		<int name="nx">1024</int>
+		<int name="ny">1024</int>
+		<float name="HorizScale">10</float>
+		<bool name="MosaicFlag">false</bool>
+		<int name="MosaicSize">512</int>
+	</varlist>
+	<bool name="WrapFlag">true</bool>
+	<varlist name="AM">
+		<string name="Climate">Temperate</string>
+	</varlist>
+	<varlist name="Ops">
+		<bool name="GenAM">true</bool>
+		<bool name="GenTX">true</bool>
+	</varlist>
+	<varlist name="CalcTimers">
+		<varlist name="AM">
+			<float name="GenMap">4.071</float>
+		</varlist>
+		<varlist name="TX">
+			<float name="GenMap">9.984</float>
+		</varlist>
+	</varlist>
+	<varlist name="TX">
+		<bool name="UseLM">false</bool>
+		<bool name="UseTX">true</bool>
+		<bool name="UseStrata">true</bool>
+		<int name="TX_in_HF">2</int>
+		<bool name="MosaicFlag">false</bool>
+		<int name="MosaicSize">2048</int>
+		<int name="MaxRadAA">4</int>
+	</varlist>
+	<int name="SettingsVersion">2540</int>
+</varlist>

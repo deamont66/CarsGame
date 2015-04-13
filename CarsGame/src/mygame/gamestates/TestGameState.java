@@ -27,10 +27,10 @@ import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.LodControl;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
 import com.jme3.shadow.*;
-import com.jme3.terrain.Terrain;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.heightmap.AbstractHeightMap;
@@ -45,10 +45,13 @@ import java.util.Iterator;
 import mygame.CodeListener;
 
 import mygame.Settings;
+import mygame.Utils;
+import mygame.entities.Terrain;
+import mygame.entities.Tree;
 import mygame.entities.vehicles.AbstractVehicle;
 import mygame.entities.vehicles.BasicVehicle;
 import mygame.entities.vehicles.Ferrari;
-import mygame.entities.vehicles.FollowCarControl;
+import mygame.entities.vehicles.utils.FollowCarControl;
 import mygame.entities.vehicles.GoKart;
 import mygame.entities.vehicles.TestVehicle;
 import mygame.guicontrollers.GameGuiController;
@@ -58,7 +61,7 @@ import mygame.guicontrollers.GameGuiController;
  * @author JiriSimecek
  */
 public class TestGameState extends AbstractGameState {
-
+    
     private BulletAppState physics;
     private DepthOfFieldFilter dofFilter;
     private WaterFilter water;
@@ -68,14 +71,15 @@ public class TestGameState extends AbstractGameState {
     private Geometry waterGeo;
     private float waterHeight = 0f;
     private float time = 0.0f;
-    private TerrainQuad terrain;
-
+    private Terrain terrain;
+    private ColorRGBA vehicleColor;
+    
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
-
+        
         this.app.getNifty().fromXml("Interface/inGame.xml", "start", new GameGuiController(this.app));
-
+        
         this.physics = new BulletAppState();
         this.physics.setThreadingType(BulletAppState.ThreadingType.SEQUENTIAL);
         stateManager.attach(this.physics);
@@ -87,7 +91,7 @@ public class TestGameState extends AbstractGameState {
                 car.getVehicleControl().accelerate(3, accelerationValue);
                 car.getVehicleControl().steer(steeringValue);
 //
-                if(car.getVehicleControl().getCurrentVehicleSpeedKmHour() < 1 && brake > 0) { 
+                if (car.getVehicleControl().getCurrentVehicleSpeedKmHour() < 1 && brake > 0) {                    
                     car.getVehicleControl().accelerate(2, -2000);
                     car.getVehicleControl().accelerate(3, -2000);
                     car.getVehicleControl().brake(0);
@@ -95,23 +99,23 @@ public class TestGameState extends AbstractGameState {
                     car.getVehicleControl().brake(brake);
                 }
             }
-
+            
             public void physicsTick(PhysicsSpace space, float tpf) {
                 Vector3f forward = car.getVehicleControl().getPhysicsRotation().mult(Vector3f.UNIT_Y.negate()).normalizeLocal();
-                   Ray ray = new Ray(car.getVehicleControl().getPhysicsLocation().addLocal(0f, 0.1f, 0f), forward);
-                   CollisionResults results = new CollisionResults();
-                   terrain.collideWith(ray, results);
-                   if(results.size() >= 1) {
-                       System.out.println(results.getCollision(0).getDistance() + ", " + forward);
-                   }
+                Ray ray = new Ray(car.getVehicleControl().getPhysicsLocation().addLocal(0f, 0.1f, 0f), forward);
+                CollisionResults results = new CollisionResults();
+                terrain.getTerrainQuad().collideWith(ray, results);
+                if (results.size() >= 1) {
+                    System.out.println(results.getCollision(0).getDistance() + ", " + forward);
+                }
             }
         });
         
         initModels();
-
+        
         initKeyEvents();
     }
-
+    
     @Override
     public void initializeRenderersAndFPPs() {
         this.app.getViewPort().clearProcessors();
@@ -122,15 +126,15 @@ public class TestGameState extends AbstractGameState {
         if (waterGeo != null) {
             rootNode.detachChild(waterGeo);
         }
-
+        
         Settings settings = Settings.getSettings();
         DirectionalLight dL = new DirectionalLight();
         dL.setDirection(new Vector3f(-0.44923937f, -0.415695f, -0.7908107f)); // -0.1400655f, -0.4112364f, 0.9007033f
         this.app.getRootNode().addLight(dL);
-
+        
         AmbientLight aL = new AmbientLight();
         this.app.getRootNode().addLight(aL);
-
+        
         if (settings.getShadowType() == Settings.ShadowType.RENDERER || (settings.getShadowType() == Settings.ShadowType.FILTER && !settings.isPostProcessingEnabled())) {
             DirectionalLightShadowRenderer shadowRender = new DirectionalLightShadowRenderer(this.app.getAssetManager(), settings.getShadowMapSize(), 3);
             shadowRender.setLight(dL);
@@ -138,12 +142,12 @@ public class TestGameState extends AbstractGameState {
             shadowRender.setEdgeFilteringMode(EdgeFilteringMode.Bilinear);
             this.app.getViewPort().addProcessor(shadowRender);
         }
-
+        
         if (!settings.isPostProcessingEnabled()) {
             SimpleWaterProcessor waterProcessor = new SimpleWaterProcessor(this.app.getAssetManager());
             waterProcessor.setReflectionScene(rootNode);
             waterProcessor.setLightPosition(dL.getDirection());
-
+            
             Vector3f waterLocation = new Vector3f(0, waterHeight + 0.7f, 0);
             waterProcessor.setPlane(new Plane(Vector3f.UNIT_Y, waterLocation.dot(Vector3f.UNIT_Y)));
             waterProcessor.setWaterColor(new ColorRGBA(0.0078f, 0.3176f, 0.5f, 1.0f));
@@ -154,24 +158,24 @@ public class TestGameState extends AbstractGameState {
 
             Quad quad = new Quad(3000, 3000);
             quad.scaleTextureCoordinates(new Vector2f(60f, 60f));
-
+            
             waterGeo = new Geometry("water", quad);
             waterGeo.setLocalTranslation(-1500, waterHeight + 0.7f, 1500);
             waterGeo.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
             waterGeo.setMaterial(waterProcessor.getMaterial());
             waterGeo.setShadowMode(RenderQueue.ShadowMode.Off);
-
+            
             rootNode.attachChild(waterGeo);
             this.app.getViewPort().addProcessor(waterProcessor);
         }
-
+        
         if (settings.isPostProcessingEnabled()) {
             FilterPostProcessor fpp = new FilterPostProcessor(this.app.getAssetManager());
-
+            
             water = new WaterFilter(rootNode, dL.getDirection());
             water.setWaterHeight(waterHeight - 0.4f);
             fpp.addFilter(water);
-
+            
             PosterizationFilter filter = new PosterizationFilter();
             filter.setNumColors(8);
             filter.setStrength(0.3f);
@@ -179,7 +183,7 @@ public class TestGameState extends AbstractGameState {
 
             TranslucentBucketFilter translucent = new TranslucentBucketFilter();
             fpp.addFilter(translucent);
-
+            
             if (settings.isFilterEnabled("FXAA")) {
                 FXAAFilter fxaaFilter = new FXAAFilter();
                 fpp.addFilter(fxaaFilter);
@@ -212,7 +216,7 @@ public class TestGameState extends AbstractGameState {
                 dofFilter = new DepthOfFieldFilter();
                 fpp.addFilter(dofFilter);
             }
-
+            
             if (settings.getShadowType() == Settings.ShadowType.FILTER) {
                 // Creates shadow filter, this technique doesnt work on intel integrated card :(, sadly. 
                 DirectionalLightShadowFilter shadowFilter = new DirectionalLightShadowFilter(this.app.getAssetManager(), settings.getShadowMapSize(), 3);
@@ -223,70 +227,43 @@ public class TestGameState extends AbstractGameState {
             }
 // </editor-fold>
 
-
             this.app.getViewPort().addProcessor(fpp);
         }
     }
-
+    
     @Override
     public void initModels() {
         rootNode.attachChild(SkyFactory.createSky(this.app.getAssetManager(), "Textures/Sky/Bright/BrightSky.dds", false));
 
-        Spatial s = this.app.getAssetManager().loadModel("Models/ramp.j3o");
-        s.setLocalTranslation(200, 0, 0);
-        s.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        s.addControl(new RigidBodyControl(0));
-        physics.getPhysicsSpace().add(s);
-        rootNode.attachChild(s);
-
-        s = this.app.getAssetManager().loadModel("Models/upRoad.j3o");
-        s.setLocalTranslation(212, 0, 0);
-        s.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        s.addControl(new RigidBodyControl(0));
-        physics.getPhysicsSpace().add(s);
-        rootNode.attachChild(s);
-
-        s = this.app.getAssetManager().loadModel("Models/upRoad.j3o");
-        s.setLocalTranslation(224, 0, 0);
-        s.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        s.addControl(new RigidBodyControl(0));
-        physics.getPhysicsSpace().add(s);
-        rootNode.attachChild(s);
-
         // car        
-        car = new GoKart(this.app.getAssetManager(), ColorRGBA.Pink);
+        car = new GoKart(this.app.getAssetManager(), vehicleColor);
         car.attachTo(rootNode, physics.getPhysicsSpace());
+        car.getVehicleControl().setPhysicsLocation(new Vector3f(0, 5, 0));
 
         // --- Camera ---
-        // Disable the default flyby cam
-        app.getFlyByCamera().setEnabled(false);
-        // Create Camera Control
         followCarControl = new FollowCarControl(app.getCamera());
-        // Offset cam a little, e.g. behind and above the target:
         followCarControl.setBehindCameraOffset(new Vector3f(0, -5, 13));
         followCarControl.setFrontCameraOffset(new Vector3f(0, -0.5f, -1.8f));
         followCarControl.setInsideCameraOffset(new Vector3f(0, -2f, 1));
-        // Add control to carNode
         car.getVehicleModelNode().addControl(followCarControl);
-//        car.getVehicleControl().setPhysicsLocation(new Vector3f(4, 40, 4));
-        car.getVehicleControl().setPhysicsLocation(new Vector3f(0, 5, 0));
-        //        loadTerrain(app.getAssetManager(), "Textures/Terrains/alps/heightMapSmooth.png", "Textures/Terrains/alps/diffuseMap.png", 1024, 0.5f);
-        terrain = loadTerrain(app.getAssetManager(), "Textures/Terrains/temp/heightmap_1.png", "Textures/Terrains/temp/textureShadow.png", 1024, 0.5f);
+
+        // --- Terrain ---
+        terrain = new Terrain(app.getAssetManager(), "Textures/Terrains/plain/heightmap.png", "Textures/Terrains/plain/texture.png", 1024, 0.5f);
+        terrain.addTo(rootNode, physics);
 
         // tree
-        Spatial tree = this.app.getAssetManager().loadModel("Models/Tree/Tree.mesh.j3o");
-        tree.setShadowMode(RenderQueue.ShadowMode.Cast);
-        tree.setLocalScale(2f);
-        tree.setLocalTranslation(-35, 16.5f, 10);
-        CompoundCollisionShape treeShape = new CompoundCollisionShape();
-        treeShape.addChildShape(new BoxCollisionShape(new Vector3f(0.5f, 2.5f, 0.5f)), new Vector3f(0, 2.5f, 0));
-        tree.addControl(new RigidBodyControl(treeShape, 0));
-        physics.getPhysicsSpace().add(tree);
-        rootNode.attachChild(tree);
-
+        for (int i = 0; i < 20; i++) {
+            Tree tree = new Tree();
+            tree.setLocalTranslation(-35 + (i * 4), 0, 10);
+            tree.addTo(rootNode, physics);
+        }
+        
+        Tree tree = new Tree();
+        tree.setLocalTranslation(-35, 0, 15);
+        tree.addTo(rootNode, physics);
+        
         Spatial road = this.app.getAssetManager().loadModel("Models/roadscreen.j3o");
-        float height = terrain.getHeight(new Vector2f(120f, 40f)) - 63f;
-        System.out.println(height);
+        float height = terrain.getWorldHeightAtPoint(new Vector2f(120f, 40f));
         road.setLocalTranslation(120f, height, 40);
         CollisionShape roadShape = CollisionShapeFactory.createMeshShape(road);
         RigidBodyControl roadPhysicsControl = new RigidBodyControl(roadShape, 0);
@@ -309,11 +286,11 @@ public class TestGameState extends AbstractGameState {
         physics.getPhysicsSpace().add(geom);
         rootNode.attachChild(geom);
     }
-
+    
     @Override
     public void initKeyEvents() {
         app.getInputManager().clearMappings();
-
+        
         Settings settings = Settings.getSettings();
         app.getInputManager().addMapping("Accelerate", new KeyTrigger(settings.getKeyBinding("key_accelerate")));
         app.getInputManager().addMapping("Brake", new KeyTrigger(settings.getKeyBinding("key_brake")));
@@ -321,23 +298,24 @@ public class TestGameState extends AbstractGameState {
         app.getInputManager().addMapping("Right", new KeyTrigger(settings.getKeyBinding("key_right")));
         app.getInputManager().addMapping("Handbrake", new KeyTrigger(settings.getKeyBinding("key_handbrake")));
         app.getInputManager().addMapping("Camera", new KeyTrigger(settings.getKeyBinding("key_camera")));
-
+        
         app.getInputManager().addMapping("Reset", new KeyTrigger(KeyInput.KEY_R));
         app.getInputManager().addMapping("Debug", new KeyTrigger(KeyInput.KEY_1));
         app.getInputManager().addMapping("Exit", new KeyTrigger(KeyInput.KEY_ESCAPE));
-
+        
         app.getInputManager().addListener(actionListener, new String[]{"Accelerate", "Brake", "Left", "Right", "Handbrake", "Camera", "Reset", "Exit", "Debug"});
-
+        
         codeListener.addCodeMapping("unstuck");
         codeListener.addCodeMapping("car1");
         codeListener.addCodeMapping("car2");
         codeListener.addCodeMapping("car3");
         codeListener.addCodeMapping("car4");
+        codeListener.addCodeMapping("tree");
         
         app.getInputManager().removeRawInputListener(codeListener);
         app.getInputManager().addRawInputListener(codeListener);
     }
-
+    
     @Override
     public void update(float tpf) {
         if (dofFilter != null) {
@@ -348,14 +326,14 @@ public class TestGameState extends AbstractGameState {
             waterHeight = (float) Math.cos(((time * 0.6f) % FastMath.TWO_PI)) * 0.2f - 0.1f;
 //            water.setWaterHeight(waterHeight);
         }
-        if(car instanceof GoKart) {
-            ((GoKart)car).setSteeringWheelAngle(steeringValue);
+        if (car instanceof GoKart) {
+            ((GoKart) car).setSteeringWheelAngle(steeringValue);
         }
-
+        
         app.getListener().setLocation(app.getCamera().getLocation());
         app.getListener().setRotation(app.getCamera().getRotation());
     }
-
+    
     @Override
     public void cleanup() {
         super.cleanup();
@@ -364,68 +342,19 @@ public class TestGameState extends AbstractGameState {
         this.app.getInputManager().removeRawInputListener(codeListener);
         car.cleanup();
     }
-
-    private TerrainQuad loadTerrain(AssetManager assetManager, String heightMap, String diffuseTexture, int size, float heightScale) {
-        Material mat_terrain;
-
-        /**
-         * 1. Create terrain material and load four textures into it.
-         */
-        mat_terrain = new Material(assetManager,
-                "Common/MatDefs/Terrain/TerrainLighting.j3md");
-        mat_terrain.setTexture("DiffuseMap", assetManager.loadTexture(new TextureKey(diffuseTexture, true)));
-//        mat_terrain = assetManager.loadMaterial("Materials/terrainTest.j3m");
-
-        /**
-         * 2. Create the height map
-         */
-        Texture heightMapImage = assetManager.loadTexture(heightMap);
-        AbstractHeightMap heightmap = new ImageBasedHeightMap(heightMapImage.getImage(), heightScale);
-        heightmap.load();
-
-        /**
-         * 3. We have prepared material and heightmap. Now we create the actual
-         * terrain: 3.1) Create a TerrainQuad and name it "my terrain". 3.2) A
-         * good value for terrain tiles is 64x64 -- so we supply 64+1=65. 3.3)
-         * We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
-         * 3.4) As LOD step scale we supply Vector3f(1,1,1). 3.5) We supply the
-         * prepared heightmap itself.
-         */
-        int patchSize = 65;
-        TerrainQuad terrain = new TerrainQuad("my terrain", patchSize, size + 1, heightmap.getHeightMap());
-        /**
-         * 4. We give the terrain its material, position & scale it, and attach
-         * it.
-         */
-        terrain.setMaterial(mat_terrain);
-        terrain.setShadowMode(RenderQueue.ShadowMode.Receive);
-        terrain.setLocalTranslation(0, -63f, 0);
-        terrain.setLocalScale(1f, 1f, 1f);
-        rootNode.attachChild(terrain);
-
-        /**
-         * 5. The LOD (level of detail) depends on were the camera is:
-         */
-        TerrainLodControl control = new TerrainLodControl(terrain, app.getCamera());
-        terrain.addControl(control);
-
-        CollisionShape terrainShape = CollisionShapeFactory.createMeshShape(terrain);
-        RigidBodyControl rbc = new RigidBodyControl(terrainShape, 0);
-        rbc.setUserObject("terrain");
-        terrain.addControl(rbc);
-        physics.getPhysicsSpace().add(terrain);
-        
-        return terrain;
-    }
-
+    
     public float getCarSpeed() {
         return car.getVehicleControl().getCurrentVehicleSpeedKmHour();
+    }
+    
+    public void setVehicleColor(ColorRGBA c) {
+        this.vehicleColor = c;
     }
     
     private ActionListener actionListener = new ActionListener() {
         float accelerationForce = 8000.0f;
         float brakeForce = 300.0f;
-
+        
         public void onAction(String name, boolean isPressed, float tpf) {
             if (name.equals("Exit") && !isPressed) {
                 if (!TestGameState.this.isPaused()) {
@@ -445,7 +374,7 @@ public class TestGameState extends AbstractGameState {
                 }
                 Element element = app.getNifty().getCurrentScreen().findElementByName("ingameMenu");
                 element.setVisible(TestGameState.this.isPaused());
-
+                
             } else if (name.equals("Left")) {
                 if (isPressed) {
                     steeringValue += .5f;
@@ -489,7 +418,7 @@ public class TestGameState extends AbstractGameState {
             if (name.equals("unstuck")) {
                 car.getVehicleControl().setPhysicsLocation(car.getVehicleControl().getPhysicsLocation().add(new Vector3f(0, 5, 0)));
                 car.getVehicleControl().setPhysicsRotation(Quaternion.IDENTITY);
-            } else if(name.equals("car1")) {
+            } else if (name.equals("car1")) {
                 Vector3f oldPos = car.getVehicleControl().getPhysicsLocation();
                 Quaternion oldRot = car.getVehicleControl().getPhysicsRotation();
                 
@@ -503,7 +432,7 @@ public class TestGameState extends AbstractGameState {
                 car.getVehicleModelNode().addControl(followCarControl);
                 car.getVehicleControl().setPhysicsLocation(oldPos);
                 car.getVehicleControl().setPhysicsRotation(oldRot);
-            } else if(name.equals("car2")) {
+            } else if (name.equals("car2")) {
                 Vector3f oldPos = car.getVehicleControl().getPhysicsLocation();
                 Quaternion oldRot = car.getVehicleControl().getPhysicsRotation();
                 
@@ -517,7 +446,7 @@ public class TestGameState extends AbstractGameState {
                 car.getVehicleModelNode().addControl(followCarControl);
                 car.getVehicleControl().setPhysicsLocation(oldPos);
                 car.getVehicleControl().setPhysicsRotation(oldRot);
-            } else if(name.equals("car3")) {
+            } else if (name.equals("car3")) {
                 Vector3f oldPos = car.getVehicleControl().getPhysicsLocation();
                 Quaternion oldRot = car.getVehicleControl().getPhysicsRotation();
                 
@@ -525,13 +454,13 @@ public class TestGameState extends AbstractGameState {
                 rootNode.detachChild(car.getVehicleModelNode());
                 physics.getPhysicsSpace().remove(car.getVehicleControl());
                 car.cleanup();
-
+                
                 car = new BasicVehicle(app.getAssetManager());
                 car.attachTo(rootNode, physics.getPhysicsSpace());
                 car.getVehicleModelNode().addControl(followCarControl);
                 car.getVehicleControl().setPhysicsLocation(oldPos);
                 car.getVehicleControl().setPhysicsRotation(oldRot);
-            } else if(name.equals("car4")) {
+            } else if (name.equals("car4")) {
                 Vector3f oldPos = car.getVehicleControl().getPhysicsLocation();
                 Quaternion oldRot = car.getVehicleControl().getPhysicsRotation();
                 
@@ -539,12 +468,18 @@ public class TestGameState extends AbstractGameState {
                 rootNode.detachChild(car.getVehicleModelNode());
                 physics.getPhysicsSpace().remove(car.getVehicleControl());
                 car.cleanup();
-
+                
                 car = new Ferrari(app.getAssetManager());
                 car.attachTo(rootNode, physics.getPhysicsSpace());
                 car.getVehicleModelNode().addControl(followCarControl);
                 car.getVehicleControl().setPhysicsLocation(oldPos);
                 car.getVehicleControl().setPhysicsRotation(oldRot);
+            } else if (name.equals("tree")) {
+                Tree tree = new Tree();
+                Vector3f pos = car.getVehicleControl().getPhysicsLocation();
+                pos.setY(terrain.getWorldHeightAtPoint(new Vector2f(pos.getX() + 5, pos.getZ())));
+                tree.setLocalTranslation(pos.x + 5, pos.y, pos.z);
+                tree.addTo(rootNode, physics);
             }
         }
     };
